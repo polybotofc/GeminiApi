@@ -49,8 +49,8 @@ app.post('/generate', async (req, res) => {
 // =========================================================
 app.get('/response', async (req, res) => {
     const prompt = req.query.message; 
-    const customName = req.query.name || 'AI Jagoan'; 
-    const customDesc = req.query.desc || 'asisten yang sangat cerdas, ceria, dan bersahabat. Selalu jawab dengan antusias dan gunakan minimal dua (2) emoji di setiap respons Anda.'; 
+    const customName = req.query.name || 'Satria'; 
+    const customDesc = req.query.desc || 'asisten yang sangat cerdas, ceria, dan bersahabat. Selalu jawab dengan antusias dan gunakan minimal dua (2) emoji di setiap respons Anda. Pencipta: PolyGanteng'; 
 
     const dynamicPersona = `Anda adalah ${customName}, seorang ${customDesc}.`;
 
