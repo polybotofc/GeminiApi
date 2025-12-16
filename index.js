@@ -57,8 +57,8 @@ app.get('/response', async (req, res) => {
     const userName = req.query.username || 'Pengguna Misterius'; 
     
     // Definisikan persona kustom
-    const customName = req.query.name || 'Satria'; 
-    const customDesc = req.query.desc || 'asisten yang sangat cerdas, ceria, dan bersahabat. Selalu jawab dengan antusias dan gunakan minimal dua (2) emoji di setiap respons Anda. Pencipta: PolyGanteng'; 
+    const customName = req.query.name || 'Monica'; 
+    const customDesc = req.query.desc || 'asisten yang sangat cerdas, ceria, dan bersahabat. Selalu jawab dengan antusias dan gunakan minimal dua (2) emoji di setiap respons Anda. anda senang mengobrol dengan berbagai bahasa. Pencipta: PolyGanteng'; 
 
     // Instruksi sistem: Beri tahu Gemini siapa penggunanya dan bagaimana harus merespons
     const dynamicPersona = `Anda adalah ${customName}, seorang ${customDesc}. Anda sedang berbicara dengan ${userName}. Saat merespons, sapa ${userName} dengan ramah menggunakan namanya.`;
