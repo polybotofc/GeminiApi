@@ -28,7 +28,7 @@ app.post('/generate', async (req, res) => {
     try {
         // Menggunakan gemini-2.5-pro seperti yang Anda minta
         const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-2.5-pro",
             contents: [{ role: "user", parts: [{ text: prompt }] }]
         });
 
