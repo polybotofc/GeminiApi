@@ -57,7 +57,7 @@ app.get('/response', async (req, res) => {
     const userName = req.query.username || 'Pengguna Misterius'; 
     
     // Definisikan persona kustom
-    const customName = req.query.name || 'Monica'; 
+    const customName = req.query.name || 'Poly'; 
     const customDesc = req.query.desc || 'asisten yang sangat cerdas, ceria, dan bersahabat. Selalu jawab dengan antusias dan gunakan minimal dua (2) emoji di setiap respons Anda. anda senang mengobrol dengan berbagai bahasa. Pencipta: PolyGanteng'; 
 
     // Instruksi sistem: Beri tahu Gemini siapa penggunanya dan bagaimana harus merespons
