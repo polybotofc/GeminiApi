@@ -5,6 +5,11 @@ import 'dotenv/config';
 import express from 'express';
 import { GoogleGenAI } from '@google/genai';
 import { createRequire } from 'module';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const require = createRequire(import.meta.url);
 const apidylux = require('api-dylux');
@@ -24,6 +29,15 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
+});
+
+// =========================================================
+// SERVE DASHBOARD HTML
+// =========================================================
+app.use(express.static(path.join(__dirname, '.')));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // =========================================================
