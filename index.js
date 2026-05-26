@@ -1,1413 +1,155 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SELORA API — Powerful Modern API Platform</title>
-  <meta name="description" content="SELORA API menyediakan layanan API modern dengan performa tinggi, dokumentasi lengkap, dan integrasi mudah untuk developer." />
-  <meta name="keywords" content="SELORA API, API platform, AI Chat API, TikTok Downloader API, developer tools, REST API" />
-  <meta name="author" content="SELORA API" />
-  <meta name="theme-color" content="#0a0a0f" />
-  <meta property="og:title" content="SELORA API — Powerful Modern API Platform" />
-  <meta property="og:description" content="Fast, Reliable, and Modern API Platform for Developers." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://seloraapi.com" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="SELORA API — Powerful Modern API Platform" />
-  <meta name="twitter:description" content="Fast, Reliable, and Modern API Platform for Developers." />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%236366f1'>S</text></svg>" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700&family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
+// =========================================================
+// 1. IMPOR MODUL DAN SETUP AWAL
+// =========================================================
+import 'dotenv/config';
+import express from 'express';
+import { GoogleGenAI } from '@google/genai';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-<style>
-/* ============================================================
-   SELORA API — Embedded CSS
-   ============================================================ */
-:root {
-  --bg: #080810;
-  --bg2: #0d0d18;
-  --bg3: #111122;
-  --surface: rgba(255,255,255,0.04);
-  --surface2: rgba(255,255,255,0.07);
-  --border: rgba(255,255,255,0.08);
-  --primary: #6366f1;
-  --primary-light: #818cf8;
-  --primary-dark: #4f46e5;
-  --accent: #06b6d4;
-  --accent2: #a855f7;
-  --green: #22c55e;
-  --red: #ef4444;
-  --text: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
-  --font-display: 'Syne', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
-  --font-mono: 'Space Mono', monospace;
-  --radius: 16px;
-  --radius-sm: 10px;
-  --radius-lg: 24px;
-  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body { font-family: var(--font-body); background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
-a { color: inherit; text-decoration: none; }
-ul { list-style: none; }
-button { cursor: pointer; font-family: inherit; border: none; outline: none; background: none; }
-input, textarea { font-family: inherit; outline: none; border: none; }
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-/* CURSOR */
-.cursor-glow { position: fixed; width: 400px; height: 400px; background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%); border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 0; will-change: left,top; }
+const app = express();
+const PORT = process.env.PORT || 3000;
+const ai = new GoogleGenAI({});
 
-/* SCROLL PROGRESS */
-.scroll-progress { position: fixed; top: 0; left: 0; height: 2px; width: 0%; background: linear-gradient(90deg, var(--primary), var(--accent), var(--accent2)); z-index: 9999; box-shadow: 0 0 8px var(--primary); transition: width 0.05s linear; }
+app.use(express.json());
 
-/* LOADER */
-.loader { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: opacity 0.6s ease, visibility 0.6s ease; }
-.loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-.loader-bg { position: absolute; inset: 0; background: radial-gradient(ellipse at center, #1a0a3e 0%, #08080f 60%); animation: loaderBg 3s ease-in-out infinite alternate; }
-@keyframes loaderBg { from { background: radial-gradient(ellipse at center, #1a0a3e 0%, #08080f 60%); } to { background: radial-gradient(ellipse at 60% 40%, #0a1a3e 0%, #08080f 60%); } }
-.loader-inner { position: relative; z-index: 1; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 24px; }
-.loader-logo { font-family: var(--font-display); font-size: 2.8rem; font-weight: 800; letter-spacing: 0.05em; animation: loaderPulse 1.5s ease-in-out infinite; }
-.loader-logo span { color: var(--primary); }
-@keyframes loaderPulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
-.loader-spinner { position: relative; width: 64px; height: 64px; }
-.spinner-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent; animation: spin 1.5s linear infinite; }
-.spinner-ring:nth-child(1) { border-top-color: var(--primary); animation-duration: 1s; }
-.spinner-ring:nth-child(2) { inset: 8px; border-right-color: var(--accent); animation-duration: 1.5s; animation-direction: reverse; }
-.spinner-ring:nth-child(3) { inset: 16px; border-bottom-color: var(--accent2); animation-duration: 2s; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.loader-text { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); letter-spacing: 0.15em; text-transform: uppercase; }
-
-/* CONTAINER */
-.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-
-/* BUTTONS */
-.btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 10px; font-family: var(--font-display); font-size: 0.9rem; font-weight: 600; letter-spacing: 0.02em; transition: var(--transition); position: relative; overflow: hidden; cursor: pointer; white-space: nowrap; }
-.btn-sm { padding: 8px 16px; font-size: 0.8rem; border-radius: 8px; }
-.btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 20px rgba(99,102,241,0.3); }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.5); }
-.btn-glow { box-shadow: 0 0 20px rgba(99,102,241,0.4), 0 4px 20px rgba(99,102,241,0.3); }
-.btn-glow:hover { box-shadow: 0 0 35px rgba(99,102,241,0.6), 0 8px 30px rgba(99,102,241,0.4); }
-.btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); backdrop-filter: blur(12px); }
-.btn-ghost:hover { background: var(--surface); border-color: var(--primary); color: var(--primary-light); transform: translateY(-2px); }
-.ripple { position: relative; overflow: hidden; }
-.ripple-effect { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.2); transform: scale(0); animation: rippleAnim 0.6s linear; pointer-events: none; }
-@keyframes rippleAnim { to { transform: scale(4); opacity: 0; } }
-
-/* NAVBAR */
-.navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 20px 0; transition: var(--transition); }
-.navbar.scrolled { background: rgba(8,8,16,0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 12px 0; box-shadow: 0 4px 40px rgba(0,0,0,0.3); }
-.nav-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 32px; }
-.nav-logo { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; letter-spacing: 0.05em; flex-shrink: 0; }
-.nav-logo span { color: var(--primary); }
-.nav-links { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-.nav-link { padding: 6px 12px; font-size: 0.88rem; font-weight: 500; color: var(--text-muted); border-radius: 8px; transition: var(--transition); position: relative; }
-.nav-link::after { content: ''; position: absolute; bottom: 2px; left: 50%; right: 50%; height: 2px; background: var(--primary); transition: var(--transition); border-radius: 2px; }
-.nav-link:hover, .nav-link.active { color: var(--text); }
-.nav-link:hover::after, .nav-link.active::after { left: 12px; right: 12px; }
-.nav-cta { margin-left: 8px; flex-shrink: 0; }
-.hamburger { display: none; flex-direction: column; gap: 5px; padding: 4px; margin-left: 8px; flex-shrink: 0; }
-.hamburger span { display: block; width: 24px; height: 2px; background: var(--text); border-radius: 2px; transition: var(--transition); }
-.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
-.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-
-/* MOBILE SIDEBAR */
-.mobile-sidebar { position: fixed; top: 0; right: -100%; width: min(320px, 80vw); height: 100vh; background: rgba(10,10,20,0.97); backdrop-filter: blur(30px); border-left: 1px solid var(--border); z-index: 1001; transition: right 0.4s cubic-bezier(0.4,0,0.2,1); padding: 80px 32px 40px; display: flex; flex-direction: column; }
-.mobile-sidebar.open { right: 0; }
-.sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; opacity: 0; visibility: hidden; transition: var(--transition); backdrop-filter: blur(4px); }
-.sidebar-overlay.open { opacity: 1; visibility: visible; }
-.sidebar-logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; margin-bottom: 40px; }
-.sidebar-logo span { color: var(--primary); }
-.sidebar-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-.sidebar-link { display: block; padding: 14px 16px; font-size: 1rem; font-weight: 500; color: var(--text-muted); border-radius: 10px; transition: var(--transition); }
-.sidebar-link:hover { color: var(--text); background: var(--surface2); padding-left: 24px; }
-.sidebar-cta { margin-top: 24px; justify-content: center; }
-
-/* HERO */
-.hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; padding: 120px 24px 80px; text-align: center; }
-.hero-content { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; }
-.particles-canvas { position: absolute; inset: 0; z-index: 0; }
-.hero-blobs { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
-.blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.35; animation: blobFloat 8s ease-in-out infinite; }
-.blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, var(--primary) 0%, transparent 70%); top: -100px; left: -100px; }
-.blob-2 { width: 400px; height: 400px; background: radial-gradient(circle, var(--accent2) 0%, transparent 70%); top: 20%; right: -80px; animation-delay: -3s; }
-.blob-3 { width: 300px; height: 300px; background: radial-gradient(circle, var(--accent) 0%, transparent 70%); bottom: 10%; left: 30%; animation-delay: -5s; }
-@keyframes blobFloat { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(30px,-20px) scale(1.05); } 66% { transform: translate(-20px,30px) scale(0.95); } }
-
-/* SOCIAL BAR */
-.social-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; position: relative; z-index: 2; margin-bottom: 40px; }
-.social-card { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; font-size: 1.1rem; color: var(--text-muted); backdrop-filter: blur(12px); transition: var(--transition); position: relative; }
-.social-card:hover { color: var(--primary-light); border-color: var(--primary); background: rgba(99,102,241,0.1); transform: translateY(-4px); box-shadow: 0 8px 24px rgba(99,102,241,0.3); }
-.social-card[data-tooltip]::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); padding: 4px 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; font-size: 0.7rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: var(--transition); }
-.social-card:hover[data-tooltip]::after { opacity: 1; }
-
-/* STATUS PANEL */
-.status-panel { position: relative; z-index: 2; display: inline-flex; flex-direction: column; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 24px; backdrop-filter: blur(16px); margin-bottom: 40px; min-width: 280px; }
-.status-header { font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-dim); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
-.status-items { display: flex; flex-direction: column; gap: 8px; }
-.status-item { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-muted); }
-.status-name { flex: 1; }
-.status-badge { font-family: var(--font-mono); font-size: 0.7rem; padding: 2px 10px; border-radius: 20px; font-weight: 700; letter-spacing: 0.05em; }
-.status-badge.online { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
-.status-badge.offline { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
-.pulse-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-.pulse-dot.green { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulseGreen 2s ease-in-out infinite; }
-.pulse-dot.red { background: var(--red); box-shadow: 0 0 8px var(--red); animation: pulseRed 2s ease-in-out infinite; }
-.pulse-dot.small { width: 6px; height: 6px; }
-.pulse-green { background: var(--green); box-shadow: 0 0 8px var(--green); width: 8px; height: 8px; border-radius: 50%; display: inline-block; animation: pulseGreen 2s ease-in-out infinite; }
-@keyframes pulseGreen { 0%,100% { box-shadow: 0 0 6px var(--green); opacity: 1; } 50% { box-shadow: 0 0 16px var(--green), 0 0 24px rgba(34,197,94,0.4); opacity: 0.7; } }
-@keyframes pulseRed { 0%,100% { box-shadow: 0 0 6px var(--red); } 50% { box-shadow: 0 0 16px var(--red), 0 0 24px rgba(239,68,68,0.4); } }
-
-/* HERO CONTENT */
-.hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); border-radius: 30px; font-size: 0.8rem; font-family: var(--font-mono); color: var(--primary-light); margin-bottom: 24px; text-transform: uppercase; letter-spacing: 0.1em; }
-.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary-light); animation: pulseGreen 2s infinite; }
-.hero-title { font-family: var(--font-display); font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 20px; }
-.gradient-text { background: linear-gradient(135deg, var(--primary-light), var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-.hero-subtitle { font-size: 1.3rem; font-weight: 400; color: var(--text-muted); margin-bottom: 16px; }
-.hero-desc { font-size: 1rem; color: var(--text-dim); max-width: 600px; margin: 0 auto 36px; line-height: 1.7; }
-.hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-.section-divider { position: absolute; bottom: 0; left: 0; right: 0; z-index: 3; }
-.section-divider svg { display: block; width: 100%; height: 80px; }
-
-/* SECTIONS COMMON */
-section { padding: 100px 0; }
-.section-header { text-align: center; margin-bottom: 60px; }
-.section-tag { display: inline-block; padding: 4px 14px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); border-radius: 20px; font-size: 0.75rem; font-family: var(--font-mono); color: var(--primary-light); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; }
-.section-title { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 16px; }
-.section-desc { color: var(--text-muted); max-width: 550px; margin: 0 auto; }
-
-/* STATS */
-.stats-section { padding: 60px 0; background: var(--bg2); }
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px 24px; text-align: center; backdrop-filter: blur(12px); transition: var(--transition); }
-.stat-card:hover { border-color: var(--primary); box-shadow: 0 0 30px rgba(99,102,241,0.15); transform: translateY(-4px); }
-.stat-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; margin: 0 auto 16px; font-size: 1.2rem; color: var(--primary-light); }
-.stat-num { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; line-height: 1; margin-bottom: 8px; }
-.stat-label { font-size: 0.85rem; color: var(--text-muted); }
-
-/* FEATURES */
-.features-section { background: var(--bg); }
-.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-.feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px 28px; transition: var(--transition); position: relative; overflow: hidden; }
-.feature-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--primary), transparent); opacity: 0; transition: var(--transition); }
-.feature-card:hover { border-color: rgba(99,102,241,0.3); transform: translateY(-6px); box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 30px rgba(99,102,241,0.1); }
-.feature-card:hover::before { opacity: 1; }
-.feature-icon { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(6,182,212,0.1)); border: 1px solid rgba(99,102,241,0.2); border-radius: 14px; margin-bottom: 20px; font-size: 1.3rem; color: var(--primary-light); transition: var(--transition); }
-.feature-card:hover .feature-icon { background: rgba(99,102,241,0.2); box-shadow: 0 0 20px rgba(99,102,241,0.3); }
-.feature-card h3 { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; }
-.feature-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; }
-
-/* APIS */
-.apis-section { background: var(--bg2); }
-.api-search-bar { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 20px; max-width: 500px; margin: 0 auto 24px; transition: var(--transition); }
-.api-search-bar:focus-within { border-color: var(--primary); box-shadow: 0 0 20px rgba(99,102,241,0.2); }
-.api-search-bar i { color: var(--text-dim); }
-.api-search-bar input { flex: 1; background: none; color: var(--text); font-size: 0.9rem; }
-.api-search-bar input::placeholder { color: var(--text-dim); }
-.api-filters { display: flex; justify-content: center; gap: 10px; margin-bottom: 48px; flex-wrap: wrap; }
-.filter-btn { padding: 8px 18px; border-radius: 20px; font-size: 0.82rem; font-weight: 500; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); transition: var(--transition); }
-.filter-btn:hover, .filter-btn.active { background: rgba(99,102,241,0.15); border-color: var(--primary); color: var(--primary-light); }
-.api-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; max-width: 900px; margin: 0 auto; }
-.api-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; position: relative; overflow: hidden; transition: var(--transition); }
-.api-card::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 80% 20%, rgba(99,102,241,0.08), transparent 70%); opacity: 0; transition: var(--transition); }
-.api-card:hover { border-color: rgba(99,102,241,0.4); transform: translateY(-6px); box-shadow: 0 24px 50px rgba(0,0,0,0.35), 0 0 40px rgba(99,102,241,0.15); }
-.api-card:hover::after { opacity: 1; }
-.api-card-top-border { position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--primary), var(--accent)); opacity: 0; transition: var(--transition); }
-.api-card:hover .api-card-top-border { opacity: 1; }
-.api-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.api-icon { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.4rem; }
-.ai-icon { background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2)); color: var(--primary-light); border: 1px solid rgba(99,102,241,0.25); }
-.tiktok-icon { background: linear-gradient(135deg, rgba(0,0,0,0.4), rgba(254,44,85,0.2)); color: #fe2c55; border: 1px solid rgba(254,44,85,0.25); }
-.api-status-badge { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-family: var(--font-mono); color: var(--green); padding: 4px 12px; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 20px; }
-.api-name { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; }
-.api-desc { font-size: 0.88rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 20px; }
-.api-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-.meta-item { display: flex; flex-direction: column; gap: 3px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
-.meta-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-mono); }
-.meta-val { font-size: 0.85rem; font-weight: 600; }
-.method-get { color: var(--green); }
-.api-endpoint { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); overflow: hidden; }
-.api-endpoint code { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.copy-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; color: var(--text-muted); cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
-.copy-btn:hover { color: var(--primary-light); border-color: var(--primary); }
-.api-actions { display: flex; gap: 12px; }
-
-/* TESTER */
-.tester-section { background: var(--bg); }
-.tester-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; max-width: 1000px; margin: 0 auto; }
-.tester-input-area, .tester-output-area { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-.tester-url-bar { background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim); overflow: hidden; }
-.method-badge { padding: 2px 10px; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); border-radius: 4px; font-size: 0.72rem; font-weight: 700; color: var(--green); flex-shrink: 0; }
-.base-url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--accent); }
-.tester-form { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
-.form-group { display: flex; flex-direction: column; gap: 8px; }
-.form-group label { font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono); letter-spacing: 0.05em; }
-.form-group input { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text); font-size: 0.9rem; transition: var(--transition); }
-.form-group input:focus { border-color: var(--primary); box-shadow: 0 0 16px rgba(99,102,241,0.2); }
-.terminal-header { background: rgba(0,0,0,0.4); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; gap: 8px; }
-.terminal-dots { display: flex; gap: 6px; }
-.tdot { width: 12px; height: 12px; border-radius: 50%; }
-.tdot.red { background: #ff5f57; }
-.tdot.yellow { background: #ffbd2e; }
-.tdot.green { background: #28c840; }
-.terminal-title { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim); }
-.terminal-body { min-height: 280px; padding: 20px; font-family: var(--font-mono); font-size: 0.8rem; overflow-y: auto; max-height: 400px; }
-.terminal-placeholder { height: 100%; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--text-dim); font-size: 0.85rem; }
-.terminal-placeholder i { font-size: 2rem; opacity: 0.3; }
-.terminal-loading { display: flex; align-items: center; gap: 10px; color: var(--accent); font-family: var(--font-mono); font-size: 0.85rem; }
-.terminal-loading .spinner-sm { width: 16px; height: 16px; border: 2px solid rgba(6,182,212,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
-.json-output { line-height: 1.8; }
-.json-key { color: var(--primary-light); }
-.json-string { color: var(--accent); }
-.json-number { color: #fb923c; }
-.json-boolean { color: var(--accent2); }
-.json-null { color: var(--text-dim); }
-
-/* DOCS */
-.docs-section { background: var(--bg2); }
-.docs-tabs { display: flex; gap: 4px; justify-content: center; margin-bottom: 32px; flex-wrap: wrap; }
-.doc-tab { padding: 10px 20px; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; transition: var(--transition); }
-.doc-tab.active, .doc-tab:hover { color: var(--primary-light); border-color: var(--primary); background: rgba(99,102,241,0.1); }
-.code-blocks { max-width: 800px; margin: 0 auto; }
-.code-block { display: none; }
-.code-block.active { display: block; }
-.code-header { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.5); border: 1px solid var(--border); border-bottom: none; border-radius: var(--radius-sm) var(--radius-sm) 0 0; padding: 12px 20px; }
-.code-lang { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim); }
-pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 0 0 var(--radius-sm) var(--radius-sm); padding: 24px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.8; }
-.kw { color: #a78bfa; }
-.fn { color: #60a5fa; }
-.str { color: #86efac; }
-.num { color: #fb923c; }
-.cm { color: var(--text-dim); font-style: italic; }
-.tmpl { color: #fbbf24; }
-.key { color: var(--primary-light); }
-
-/* PRICING */
-.pricing-section { background: var(--bg); }
-.pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width: 1000px; margin: 0 auto; align-items: start; }
-.pricing-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 36px 28px; transition: var(--transition); position: relative; overflow: hidden; }
-.pricing-card:hover { transform: translateY(-8px); box-shadow: 0 24px 50px rgba(0,0,0,0.4); }
-.pricing-card.featured { border-color: var(--primary); background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(6,182,212,0.04)); box-shadow: 0 0 40px rgba(99,102,241,0.2); transform: scale(1.03); }
-.pricing-card.featured:hover { transform: scale(1.03) translateY(-8px); }
-.featured-badge { position: absolute; top: 20px; right: 20px; padding: 4px 12px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 20px; font-size: 0.72rem; font-weight: 700; color: white; }
-.pricing-header { margin-bottom: 28px; }
-.plan-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; font-size: 1.1rem; color: var(--primary-light); margin-bottom: 16px; }
-.plan-name { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; margin-bottom: 16px; }
-.plan-price { display: flex; align-items: baseline; gap: 4px; }
-.price-currency { font-size: 0.9rem; color: var(--text-muted); }
-.price-amount { font-family: var(--font-display); font-size: 2.5rem; font-weight: 800; }
-.price-period { font-size: 0.85rem; color: var(--text-muted); }
-.plan-features { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
-.plan-features li { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; color: var(--text-muted); }
-.plan-features li i.fa-check { color: var(--green); }
-.plan-features li i.fa-times { color: var(--text-dim); }
-.plan-features li.disabled { opacity: 0.4; }
-.pricing-card .btn { width: 100%; justify-content: center; }
-
-/* TESTIMONIALS */
-.testimonials-section { background: var(--bg2); overflow: hidden; }
-.testimonial-slider { position: relative; overflow: hidden; }
-.testimonial-track { display: flex; gap: 24px; transition: transform 0.6s cubic-bezier(0.4,0,0.2,1); }
-.testimonial-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; min-width: 320px; flex: 0 0 calc(33.333% - 16px); }
-.testi-stars { color: #fbbf24; font-size: 0.85rem; display: flex; gap: 3px; margin-bottom: 16px; }
-.testimonial-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 20px; font-style: italic; }
-.testi-author { display: flex; align-items: center; gap: 12px; }
-.testi-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; color: white; flex-shrink: 0; }
-.testi-name { font-weight: 600; font-size: 0.9rem; }
-.testi-role { font-size: 0.78rem; color: var(--text-dim); }
-.slider-controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 32px; }
-.slider-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text-muted); transition: var(--transition); }
-.slider-btn:hover { color: var(--primary-light); border-color: var(--primary); }
-.slider-dots { display: flex; gap: 8px; }
-.slider-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: var(--transition); }
-.slider-dot.active { background: var(--primary); box-shadow: 0 0 8px var(--primary); width: 24px; border-radius: 4px; }
-
-/* FAQ */
-.faq-section { background: var(--bg); }
-.faq-list { max-width: 700px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
-.faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; transition: var(--transition); }
-.faq-item:hover { border-color: rgba(99,102,241,0.3); }
-.faq-question { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; font-size: 0.95rem; font-weight: 600; color: var(--text); text-align: left; transition: var(--transition); }
-.faq-question:hover { color: var(--primary-light); }
-.faq-icon { transition: var(--transition); color: var(--text-muted); flex-shrink: 0; }
-.faq-item.open .faq-icon { transform: rotate(180deg); color: var(--primary-light); }
-.faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
-.faq-answer.open { max-height: 200px; }
-.faq-answer p { padding: 0 24px 20px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; }
-.faq-answer code { font-family: var(--font-mono); font-size: 0.8rem; background: rgba(99,102,241,0.1); color: var(--accent); padding: 2px 6px; border-radius: 4px; }
-
-/* CONTACT */
-.contact-section { background: var(--bg2); }
-.contact-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1000px; margin: 0 auto; }
-.contact-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px 24px; display: flex; align-items: flex-start; gap: 16px; transition: var(--transition); }
-.contact-card:hover { border-color: var(--primary); transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
-.contact-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; font-size: 1.1rem; color: var(--primary-light); flex-shrink: 0; }
-.contact-label { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 4px; }
-.contact-val { font-size: 0.85rem; color: var(--text-muted); transition: var(--transition); }
-.contact-card:hover .contact-val { color: var(--primary-light); }
-
-/* FOOTER */
-.footer { background: var(--bg); border-top: 1px solid var(--border); padding: 80px 0 32px; position: relative; overflow: hidden; }
-.footer-glow { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 1px; background: linear-gradient(90deg, transparent, var(--primary), transparent); box-shadow: 0 0 40px var(--primary); }
-.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 60px; }
-.footer-logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; margin-bottom: 16px; }
-.footer-logo span { color: var(--primary); }
-.footer-brand p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 24px; max-width: 280px; }
-.footer-socials { display: flex; gap: 12px; }
-.fsocial { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text-muted); transition: var(--transition); font-size: 0.9rem; }
-.fsocial:hover { color: var(--primary-light); border-color: var(--primary); background: rgba(99,102,241,0.1); }
-.footer-col h4 { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; margin-bottom: 20px; }
-.footer-col ul { display: flex; flex-direction: column; gap: 10px; }
-.footer-col ul li a { font-size: 0.85rem; color: var(--text-muted); transition: var(--transition); }
-.footer-col ul li a:hover { color: var(--primary-light); padding-left: 4px; }
-.footer-divider { height: 1px; background: var(--border); margin-bottom: 28px; }
-.footer-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
-.footer-copy { font-size: 0.82rem; color: var(--text-dim); }
-.footer-status { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text-dim); }
-
-/* SCROLL TOP */
-.scroll-top { position: fixed; bottom: 32px; right: 32px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--primary); border-radius: 12px; color: white; font-size: 1rem; z-index: 500; opacity: 0; visibility: hidden; transform: translateY(10px); transition: var(--transition); box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
-.scroll-top.visible { opacity: 1; visibility: visible; transform: translateY(0); }
-.scroll-top:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(99,102,241,0.5); }
-
-/* TOAST */
-.toast-container { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 9998; pointer-events: none; }
-.toast { display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: rgba(15,15,30,0.95); border: 1px solid var(--border); border-radius: 10px; backdrop-filter: blur(20px); font-size: 0.85rem; color: var(--text); white-space: nowrap; box-shadow: 0 8px 32px rgba(0,0,0,0.4); animation: toastIn 0.4s ease forwards; pointer-events: auto; }
-.toast.toast-success { border-color: rgba(34,197,94,0.3); }
-.toast.toast-success i { color: var(--green); }
-.toast.toast-error { border-color: rgba(239,68,68,0.3); }
-.toast.toast-error i { color: var(--red); }
-.toast.toast-out { animation: toastOut 0.4s ease forwards; }
-@keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
-
-/* RESPONSIVE */
-@media (max-width: 1024px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .features-grid { grid-template-columns: repeat(2, 1fr); }
-  .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
-  .pricing-card.featured { transform: none; }
-  .pricing-card.featured:hover { transform: translateY(-8px); }
-  .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
-  .contact-grid { grid-template-columns: repeat(2, 1fr); }
-  .testimonial-card { flex: 0 0 calc(50% - 12px); }
-}
-@media (max-width: 768px) {
-  section { padding: 72px 0; }
-  .nav-links, .nav-cta { display: none; }
-  .hamburger { display: flex; }
-  .hero { padding: 100px 16px 60px; }
-  .api-grid { grid-template-columns: 1fr; max-width: 480px; }
-  .tester-wrapper { grid-template-columns: 1fr; }
-  .features-grid { grid-template-columns: 1fr; }
-  .contact-grid { grid-template-columns: repeat(2, 1fr); }
-  .footer-grid { grid-template-columns: 1fr; gap: 32px; }
-  .testimonial-card { flex: 0 0 100%; min-width: unset; }
-  .hero-actions { flex-direction: column; align-items: center; }
-  .social-bar { gap: 8px; }
-  .social-card { width: 42px; height: 42px; font-size: 1rem; }
-}
-@media (max-width: 480px) {
-  .stats-grid { grid-template-columns: 1fr 1fr; }
-  .contact-grid { grid-template-columns: 1fr; }
-  .hero-title { font-size: 2.2rem; }
-  .scroll-top { bottom: 20px; right: 20px; }
-}
-</style>
-</head>
-<body>
-
-  <!-- CURSOR GLOW -->
-  <div class="cursor-glow" id="cursorGlow"></div>
-  <!-- SCROLL PROGRESS -->
-  <div class="scroll-progress" id="scrollProgress"></div>
-
-  <!-- LOADING SCREEN -->
-  <div class="loader" id="loader">
-    <div class="loader-inner">
-      <div class="loader-logo">SELORA <span>API</span></div>
-      <div class="loader-spinner">
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
-      </div>
-      <div class="loader-text">Initializing Platform...</div>
-    </div>
-    <div class="loader-bg"></div>
-  </div>
-
-  <!-- NAVBAR -->
-  <nav class="navbar" id="navbar">
-    <div class="nav-container">
-      <a href="#" class="nav-logo">SELORA <span>API</span></a>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="#home" class="nav-link active">Home</a></li>
-        <li><a href="#apis" class="nav-link">APIs</a></li>
-        <li><a href="#docs" class="nav-link">Documentation</a></li>
-        <li><a href="#pricing" class="nav-link">Pricing</a></li>
-        <li><a href="#faq" class="nav-link">FAQ</a></li>
-        <li><a href="#contact" class="nav-link">Contact</a></li>
-      </ul>
-      <a href="#apis" class="btn btn-primary btn-sm nav-cta">Get Started</a>
-      <button class="hamburger" id="hamburger" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </nav>
-
-  <!-- MOBILE SIDEBAR -->
-  <div class="mobile-sidebar" id="mobileSidebar">
-    <div class="sidebar-logo">SELORA <span>API</span></div>
-    <ul class="sidebar-links">
-      <li><a href="#home" class="sidebar-link">Home</a></li>
-      <li><a href="#apis" class="sidebar-link">APIs</a></li>
-      <li><a href="#docs" class="sidebar-link">Documentation</a></li>
-      <li><a href="#pricing" class="sidebar-link">Pricing</a></li>
-      <li><a href="#faq" class="sidebar-link">FAQ</a></li>
-      <li><a href="#contact" class="sidebar-link">Contact</a></li>
-    </ul>
-    <a href="#apis" class="btn btn-primary sidebar-cta">Get Started</a>
-  </div>
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-  <!-- HERO -->
-  <section class="hero" id="home">
-    <canvas class="particles-canvas" id="particlesCanvas"></canvas>
-    <div class="hero-blobs">
-      <div class="blob blob-1"></div>
-      <div class="blob blob-2"></div>
-      <div class="blob blob-3"></div>
-    </div>
-
-    <div class="social-bar" data-aos="fade-down" data-aos-delay="200">
-      <a href="#" class="social-card" id="social-instagram" data-tooltip="Instagram"><i class="fab fa-instagram"></i></a>
-      <a href="#" class="social-card" id="social-github" data-tooltip="GitHub"><i class="fab fa-github"></i></a>
-      <a href="#" class="social-card" id="social-tiktok" data-tooltip="TikTok"><i class="fab fa-tiktok"></i></a>
-      <a href="#" class="social-card" id="social-discord" data-tooltip="Discord"><i class="fab fa-discord"></i></a>
-      <a href="#" class="social-card" id="social-whatsapp" data-tooltip="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-      <a href="#" class="social-card" id="social-email" data-tooltip="Email"><i class="fas fa-envelope"></i></a>
-    </div>
-
-    <div class="status-panel" data-aos="fade-up" data-aos-delay="300">
-      <div class="status-header"><span class="pulse-green"></span> System Status</div>
-      <div class="status-items">
-        <div class="status-item">
-          <span class="pulse-dot green"></span>
-          <span class="status-name">AI Chat API</span>
-          <span class="status-badge online">Online</span>
-        </div>
-        <div class="status-item">
-          <span class="pulse-dot green" id="tiktokStatus"></span>
-          <span class="status-name">TikTok Downloader API</span>
-          <span class="status-badge online" id="tiktokBadge">Online</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="hero-content">
-      <div class="hero-badge" data-aos="fade-up" data-aos-delay="100"><span class="badge-dot"></span> Developer Platform 2026</div>
-      <h1 class="hero-title" data-aos="fade-up" data-aos-delay="200">Powerful &amp; Fast<br /><span class="gradient-text">API Services</span></h1>
-      <p class="hero-subtitle" data-aos="fade-up" data-aos-delay="300">Fast, Reliable, and Modern API Platform for Developers</p>
-      <p class="hero-desc" data-aos="fade-up" data-aos-delay="400">SELORA API menyediakan layanan API modern dengan performa tinggi, dokumentasi lengkap, dan integrasi mudah untuk developer.</p>
-      <div class="hero-actions" data-aos="fade-up" data-aos-delay="500">
-        <a href="#apis" class="btn btn-primary btn-glow ripple"><i class="fas fa-rocket"></i> Explore APIs</a>
-        <a href="#docs" class="btn btn-ghost ripple"><i class="fas fa-book"></i> View Documentation</a>
-      </div>
-    </div>
-
-    <div class="section-divider">
-      <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-        <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="#0d0d18"/>
-      </svg>
-    </div>
-  </section>
-
-  <!-- STATS -->
-  <section class="stats-section" id="stats">
-    <div class="container">
-      <div class="stats-grid">
-        <div class="stat-card" data-aos="fade-up" data-aos-delay="0">
-          <div class="stat-icon"><i class="fas fa-code-branch"></i></div>
-          <div class="stat-num" data-count="2">0</div>
-          <div class="stat-label">Total APIs</div>
-        </div>
-        <div class="stat-card" data-aos="fade-up" data-aos-delay="100">
-          <div class="stat-icon"><i class="fas fa-bolt"></i></div>
-          <div class="stat-num" data-count="1000000">0</div>
-          <div class="stat-label">Total Requests</div>
-        </div>
-        <div class="stat-card" data-aos="fade-up" data-aos-delay="200">
-          <div class="stat-icon"><i class="fas fa-shield-halved"></i></div>
-          <div class="stat-num" data-count="99" data-suffix="%">0</div>
-          <div class="stat-label">Uptime</div>
-        </div>
-        <div class="stat-card" data-aos="fade-up" data-aos-delay="300">
-          <div class="stat-icon"><i class="fas fa-users"></i></div>
-          <div class="stat-num" data-count="5000">0</div>
-          <div class="stat-label">Active Users</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FEATURES -->
-  <section class="features-section" id="features">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Platform</div>
-        <h2 class="section-title">Why Choose <span class="gradient-text">SELORA API</span></h2>
-        <p class="section-desc">Platform API terpercaya dengan infrastruktur modern dan developer experience terbaik.</p>
-      </div>
-      <div class="features-grid">
-        <div class="feature-card" data-aos="fade-up" data-aos-delay="0">
-          <div class="feature-icon"><i class="fas fa-gauge-high"></i></div>
-          <h3>High Performance</h3>
-          <p>Infrastruktur edge computing modern dengan latensi sangat rendah untuk setiap request.</p>
-        </div>
-        <div class="feature-card" data-aos="fade-up" data-aos-delay="80">
-          <div class="feature-icon"><i class="fas fa-bolt"></i></div>
-          <h3>Fast Response</h3>
-          <p>Response time rata-rata di bawah 120ms dengan sistem caching multi-layer canggih.</p>
-        </div>
-        <div class="feature-card" data-aos="fade-up" data-aos-delay="160">
-          <div class="feature-icon"><i class="fas fa-lock"></i></div>
-          <h3>Secure System</h3>
-          <p>Enkripsi end-to-end dan proteksi DDoS untuk menjaga keamanan setiap transaksi data.</p>
-        </div>
-        <div class="feature-card" data-aos="fade-up" data-aos-delay="240">
-          <div class="feature-icon"><i class="fas fa-plug"></i></div>
-          <h3>Easy Integration</h3>
-          <p>SDK dan dokumentasi lengkap untuk semua bahasa pemrograman populer.</p>
-        </div>
-        <div class="feature-card" data-aos="fade-up" data-aos-delay="320">
-          <div class="feature-icon"><i class="fas fa-server"></i></div>
-          <h3>24/7 Uptime</h3>
-          <p>SLA 99.9% uptime dengan monitoring realtime dan auto-recovery system.</p>
-        </div>
-        <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
-          <div class="feature-icon"><i class="fas fa-code"></i></div>
-          <h3>Developer Friendly</h3>
-          <p>API design yang intuitif, RESTful, dengan dokumentasi interaktif dan live tester.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- APIS -->
-  <section class="apis-section" id="apis">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Catalog</div>
-        <h2 class="section-title">Available <span class="gradient-text">APIs</span></h2>
-        <p class="section-desc">Koleksi API modern siap pakai dengan dokumentasi lengkap.</p>
-      </div>
-      <div class="api-search-bar" data-aos="fade-up" data-aos-delay="100">
-        <i class="fas fa-search"></i>
-        <input type="text" id="apiSearch" placeholder="Search APIs..." />
-      </div>
-      <div class="api-filters" data-aos="fade-up" data-aos-delay="150">
-        <button class="filter-btn active" data-filter="all">All</button>
-        <button class="filter-btn" data-filter="ai">Artificial Intelligence</button>
-        <button class="filter-btn" data-filter="media">Media Downloader</button>
-      </div>
-      <div class="api-grid" id="apiGrid">
-        <div class="api-card" data-aos="fade-up" data-aos-delay="200" data-category="ai">
-          <div class="api-card-top-border"></div>
-          <div class="api-card-header">
-            <div class="api-icon ai-icon"><i class="fas fa-brain"></i></div>
-            <div class="api-status-badge"><span class="pulse-dot green"></span> Online</div>
-          </div>
-          <h3 class="api-name">AI Chat API</h3>
-          <p class="api-desc">API AI modern untuk chatbot, assistant, auto reply, dan integrasi kecerdasan buatan.</p>
-          <div class="api-meta">
-            <div class="meta-item"><span class="meta-label">Method</span><span class="meta-val method-get">GET</span></div>
-            <div class="meta-item"><span class="meta-label">Response</span><span class="meta-val">120ms</span></div>
-            <div class="meta-item"><span class="meta-label">Limit</span><span class="meta-val">Unlimited</span></div>
-            <div class="meta-item"><span class="meta-label">Category</span><span class="meta-val">AI</span></div>
-          </div>
-          <div class="api-endpoint">
-            <code id="ep-ai">/response?message=halo</code>
-            <button class="copy-btn ripple" onclick="copyEndpoint('ep-ai', this)"><i class="fas fa-copy"></i></button>
-          </div>
-          <div class="api-actions">
-            <a href="#tester" class="btn btn-primary btn-sm ripple">Try It Live</a>
-            <a href="#docs" class="btn btn-ghost btn-sm ripple">View Docs</a>
-          </div>
-        </div>
-        <div class="api-card" data-aos="fade-up" data-aos-delay="300" data-category="media">
-          <div class="api-card-top-border"></div>
-          <div class="api-card-header">
-            <div class="api-icon tiktok-icon"><i class="fab fa-tiktok"></i></div>
-            <div class="api-status-badge"><span class="pulse-dot green"></span> Online</div>
-          </div>
-          <h3 class="api-name">TikTok Downloader API</h3>
-          <p class="api-desc">API downloader video TikTok cepat tanpa watermark dengan dukungan resolusi HD.</p>
-          <div class="api-meta">
-            <div class="meta-item"><span class="meta-label">Method</span><span class="meta-val method-get">GET</span></div>
-            <div class="meta-item"><span class="meta-label">Response</span><span class="meta-val">95ms</span></div>
-            <div class="meta-item"><span class="meta-label">Limit</span><span class="meta-val">10K/day</span></div>
-            <div class="meta-item"><span class="meta-label">Category</span><span class="meta-val">Media</span></div>
-          </div>
-          <div class="api-endpoint">
-            <code id="ep-tiktok">/tiktok?url=https://...</code>
-            <button class="copy-btn ripple" onclick="copyEndpoint('ep-tiktok', this)"><i class="fas fa-copy"></i></button>
-          </div>
-          <div class="api-actions">
-            <a href="#tester" class="btn btn-primary btn-sm ripple">Try It Live</a>
-            <a href="#docs" class="btn btn-ghost btn-sm ripple">View Docs</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- LIVE TESTER -->
-  <section class="tester-section" id="tester">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Interactive</div>
-        <h2 class="section-title">Live API <span class="gradient-text">Tester</span></h2>
-        <p class="section-desc">Uji API langsung di browser tanpa perlu tools tambahan.</p>
-      </div>
-      <div class="tester-wrapper" data-aos="fade-up" data-aos-delay="150">
-        <div class="tester-input-area">
-          <div class="tester-url-bar">
-            <span class="method-badge">GET</span>
-            <span class="base-url">https://poly-md.my.id/response?message=</span>
-          </div>
-          <div class="tester-form">
-            <div class="form-group">
-              <label>Message Parameter</label>
-              <input type="text" id="testerInput" placeholder="Ketik pesan untuk AI..." value="halo" />
-            </div>
-            <button class="btn btn-primary btn-glow ripple" id="sendRequestBtn">
-              <i class="fas fa-paper-plane"></i> Send Request
-            </button>
-          </div>
-        </div>
-        <div class="tester-output-area">
-          <div class="terminal-header">
-            <div class="terminal-dots">
-              <span class="tdot red"></span><span class="tdot yellow"></span><span class="tdot green"></span>
-            </div>
-            <span class="terminal-title">Response</span>
-            <button class="copy-btn" id="copyResponseBtn" style="margin-left:auto;"><i class="fas fa-copy"></i> Copy</button>
-          </div>
-          <div class="terminal-body" id="terminalBody">
-            <div class="terminal-placeholder">
-              <i class="fas fa-terminal"></i>
-              <p>Click "Send Request" to see the response</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- DOCS -->
-  <section class="docs-section" id="docs">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Reference</div>
-        <h2 class="section-title">Documentation <span class="gradient-text">Preview</span></h2>
-        <p class="section-desc">Contoh integrasi API dalam berbagai bahasa dan framework.</p>
-      </div>
-      <div class="docs-tabs" data-aos="fade-up" data-aos-delay="100">
-        <button class="doc-tab active" data-tab="fetch">Fetch API</button>
-        <button class="doc-tab" data-tab="axios">Axios</button>
-        <button class="doc-tab" data-tab="tiktok">TikTok</button>
-        <button class="doc-tab" data-tab="response">Response</button>
-      </div>
-      <div class="code-blocks" data-aos="fade-up" data-aos-delay="200">
-        <div class="code-block active" id="tab-fetch">
-          <div class="code-header">
-            <span class="code-lang">JavaScript — Fetch API</span>
-            <button class="copy-btn ripple" onclick="copyCode('code-fetch', this)"><i class="fas fa-copy"></i> Copy</button>
-          </div>
-          <pre id="code-fetch"><code><span class="kw">fetch</span>(<span class="str">"https://poly-md.my.id/response?message=halo"</span>)
-  .<span class="fn">then</span>(res =&gt; res.<span class="fn">json</span>())
-  .<span class="fn">then</span>(data =&gt; <span class="fn">console</span>.<span class="fn">log</span>(data))
-  .<span class="fn">catch</span>(err =&gt; <span class="fn">console</span>.<span class="fn">error</span>(<span class="str">"Error:"</span>, err));</code></pre>
-        </div>
-        <div class="code-block" id="tab-axios">
-          <div class="code-header">
-            <span class="code-lang">JavaScript — Axios</span>
-            <button class="copy-btn ripple" onclick="copyCode('code-axios', this)"><i class="fas fa-copy"></i> Copy</button>
-          </div>
-          <pre id="code-axios"><code><span class="kw">import</span> axios <span class="kw">from</span> <span class="str">'axios'</span>;
-
-axios.<span class="fn">get</span>(<span class="str">"https://poly-md.my.id/response?message=halo"</span>)
-  .<span class="fn">then</span>(res =&gt; <span class="fn">console</span>.<span class="fn">log</span>(res.data))
-  .<span class="fn">catch</span>(err =&gt; <span class="fn">console</span>.<span class="fn">error</span>(<span class="str">"Error:"</span>, err));</code></pre>
-        </div>
-        <div class="code-block" id="tab-tiktok">
-          <div class="code-header">
-            <span class="code-lang">JavaScript — TikTok Downloader</span>
-            <button class="copy-btn ripple" onclick="copyCode('code-tiktok', this)"><i class="fas fa-copy"></i> Copy</button>
-          </div>
-          <pre id="code-tiktok"><code><span class="cm">// TikTok Downloader API</span>
-<span class="kw">const</span> videoUrl = <span class="str">"https://www.tiktok.com/@user/video/123456789"</span>;
-
-<span class="kw">fetch</span>(<span class="str">`https://poly-md.my.id/tiktok?url=<span class="tmpl">${videoUrl}</span>`</span>)
-  .<span class="fn">then</span>(res =&gt; res.<span class="fn">json</span>())
-  .<span class="fn">then</span>(data =&gt; {
-    <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Video URL:"</span>, data.result.videoUrl);
-    <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"No Watermark:"</span>, data.result.noWatermark);
-  });</code></pre>
-        </div>
-        <div class="code-block" id="tab-response">
-          <div class="code-header">
-            <span class="code-lang">JSON — Example Response</span>
-            <button class="copy-btn ripple" onclick="copyCode('code-response', this)"><i class="fas fa-copy"></i> Copy</button>
-          </div>
-          <pre id="code-response"><code>{
-  <span class="key">"status"</span>: <span class="str">"success"</span>,
-  <span class="key">"code"</span>: <span class="num">200</span>,
-  <span class="key">"result"</span>: {
-    <span class="key">"message"</span>: <span class="str">"Halo! Saya adalah AI assistant. Ada yang bisa saya bantu?"</span>,
-    <span class="key">"model"</span>: <span class="str">"selora-v1"</span>,
-    <span class="key">"timestamp"</span>: <span class="str">"2026-01-01T00:00:00Z"</span>
-  }
-}</code></pre>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- PRICING -->
-  <section class="pricing-section" id="pricing">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Plans</div>
-        <h2 class="section-title">Simple <span class="gradient-text">Pricing</span></h2>
-        <p class="section-desc">Pilih paket yang sesuai dengan kebutuhan proyek Anda.</p>
-      </div>
-      <div class="pricing-grid">
-        <div class="pricing-card" data-aos="fade-up" data-aos-delay="0">
-          <div class="pricing-header">
-            <div class="plan-icon"><i class="fas fa-leaf"></i></div>
-            <div class="plan-name">Free</div>
-            <div class="plan-price"><span class="price-currency">Rp</span><span class="price-amount">0</span><span class="price-period">/mo</span></div>
-          </div>
-          <ul class="plan-features">
-            <li><i class="fas fa-check"></i> 1.000 requests/day</li>
-            <li><i class="fas fa-check"></i> Access to 2 APIs</li>
-            <li><i class="fas fa-check"></i> Basic documentation</li>
-            <li><i class="fas fa-check"></i> Community support</li>
-            <li class="disabled"><i class="fas fa-times"></i> Priority support</li>
-            <li class="disabled"><i class="fas fa-times"></i> Custom rate limits</li>
-          </ul>
-          <a href="#" class="btn btn-ghost ripple">Get Started Free</a>
-        </div>
-        <div class="pricing-card featured" data-aos="fade-up" data-aos-delay="150">
-          <div class="featured-badge">Most Popular</div>
-          <div class="pricing-header">
-            <div class="plan-icon"><i class="fas fa-bolt"></i></div>
-            <div class="plan-name">Pro</div>
-            <div class="plan-price"><span class="price-currency">Rp</span><span class="price-amount">99K</span><span class="price-period">/mo</span></div>
-          </div>
-          <ul class="plan-features">
-            <li><i class="fas fa-check"></i> 100.000 requests/day</li>
-            <li><i class="fas fa-check"></i> All APIs included</li>
-            <li><i class="fas fa-check"></i> Full documentation</li>
-            <li><i class="fas fa-check"></i> Priority email support</li>
-            <li><i class="fas fa-check"></i> Analytics dashboard</li>
-            <li class="disabled"><i class="fas fa-times"></i> Custom rate limits</li>
-          </ul>
-          <a href="#" class="btn btn-primary btn-glow ripple">Get Pro</a>
-        </div>
-        <div class="pricing-card" data-aos="fade-up" data-aos-delay="300">
-          <div class="pricing-header">
-            <div class="plan-icon"><i class="fas fa-building"></i></div>
-            <div class="plan-name">Enterprise</div>
-            <div class="plan-price"><span class="price-amount">Custom</span></div>
-          </div>
-          <ul class="plan-features">
-            <li><i class="fas fa-check"></i> Unlimited requests</li>
-            <li><i class="fas fa-check"></i> All APIs + custom</li>
-            <li><i class="fas fa-check"></i> Dedicated support</li>
-            <li><i class="fas fa-check"></i> SLA guarantee</li>
-            <li><i class="fas fa-check"></i> Custom rate limits</li>
-            <li><i class="fas fa-check"></i> On-premise option</li>
-          </ul>
-          <a href="#contact" class="btn btn-ghost ripple">Contact Sales</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- TESTIMONIALS -->
-  <section class="testimonials-section" id="testimonials">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Reviews</div>
-        <h2 class="section-title">Developer <span class="gradient-text">Stories</span></h2>
-      </div>
-      <div class="testimonial-slider" data-aos="fade-up" data-aos-delay="100">
-        <div class="testimonial-track" id="testimonialTrack">
-          <div class="testimonial-card">
-            <div class="testi-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-            <p>"SELORA API sangat mudah diintegrasikan. AI Chat API-nya responsif dan akurat. Cocok banget buat project chatbot kami."</p>
-            <div class="testi-author"><div class="testi-avatar">AK</div><div><div class="testi-name">Arief Kurniawan</div><div class="testi-role">Backend Developer</div></div></div>
-          </div>
-          <div class="testimonial-card">
-            <div class="testi-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-            <p>"TikTok Downloader API-nya kenceng banget, no watermark, HD quality. Persis yang aku butuhkan untuk app media downloader."</p>
-            <div class="testi-author"><div class="testi-avatar">RS</div><div><div class="testi-name">Rina Salsabila</div><div class="testi-role">Full-stack Developer</div></div></div>
-          </div>
-          <div class="testimonial-card">
-            <div class="testi-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-            <p>"Dokumentasi lengkap dan live tester bikin onboarding jadi super cepat. Platform paling developer-friendly yang pernah aku pakai."</p>
-            <div class="testi-author"><div class="testi-avatar">DP</div><div><div class="testi-name">Dika Pratama</div><div class="testi-role">Mobile Developer</div></div></div>
-          </div>
-          <div class="testimonial-card">
-            <div class="testi-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-            <p>"Uptime 99.9% bukan cuma klaim, tapi beneran. Sudah 3 bulan pakai SELORA API, belum pernah downtime sekalipun."</p>
-            <div class="testi-author"><div class="testi-avatar">NF</div><div><div class="testi-name">Naufal Farhan</div><div class="testi-role">DevOps Engineer</div></div></div>
-          </div>
-        </div>
-        <div class="slider-controls">
-          <button class="slider-btn" id="sliderPrev"><i class="fas fa-chevron-left"></i></button>
-          <div class="slider-dots" id="sliderDots"></div>
-          <button class="slider-btn" id="sliderNext"><i class="fas fa-chevron-right"></i></button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FAQ -->
-  <section class="faq-section" id="faq">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Help</div>
-        <h2 class="section-title">Frequently Asked <span class="gradient-text">Questions</span></h2>
-      </div>
-      <div class="faq-list" data-aos="fade-up" data-aos-delay="100">
-        <div class="faq-item">
-          <button class="faq-question">Bagaimana cara menggunakan API?<i class="fas fa-chevron-down faq-icon"></i></button>
-          <div class="faq-answer"><p>Cukup lakukan HTTP GET request ke endpoint yang tersedia. Contoh: <code>GET https://poly-md.my.id/response?message=halo</code>. Response akan dikembalikan dalam format JSON.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-question">Bagaimana mendapatkan API key?<i class="fas fa-chevron-down faq-icon"></i></button>
-          <div class="faq-answer"><p>Saat ini beberapa endpoint tersedia secara gratis tanpa API key. Untuk akses Pro dan Enterprise dengan fitur lebih lengkap, hubungi kami melalui halaman Contact.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-question">Apakah ada rate limit?<i class="fas fa-chevron-down faq-icon"></i></button>
-          <div class="faq-answer"><p>Free plan: 1.000 requests/day. Pro plan: 100.000 requests/day. Enterprise: unlimited. TikTok Downloader API memiliki limit 10.000 requests/day untuk semua plan.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-question">Apakah tersedia dokumentasi lengkap?<i class="fas fa-chevron-down faq-icon"></i></button>
-          <div class="faq-answer"><p>Ya, setiap API memiliki dokumentasi lengkap dengan contoh kode dalam berbagai bahasa (JavaScript, Python, PHP, dll.), schema request/response, dan error code reference.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-question">Format response API seperti apa?<i class="fas fa-chevron-down faq-icon"></i></button>
-          <div class="faq-answer"><p>Semua API mengembalikan response dalam format JSON standar dengan field <code>status</code>, <code>code</code>, dan <code>result</code>. Lihat tab Documentation Preview untuk contoh response lengkap.</p></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CONTACT -->
-  <section class="contact-section" id="contact">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Connect</div>
-        <h2 class="section-title">Get In <span class="gradient-text">Touch</span></h2>
-        <p class="section-desc">Ada pertanyaan? Tim kami siap membantu 24/7.</p>
-      </div>
-      <div class="contact-grid" data-aos="fade-up" data-aos-delay="100">
-        <div class="contact-card">
-          <div class="contact-icon"><i class="fas fa-envelope"></i></div>
-          <div class="contact-info"><div class="contact-label">Email Support</div><a href="mailto:support@seloraapi.com" class="contact-val">support@seloraapi.com</a></div>
-        </div>
-        <div class="contact-card">
-          <div class="contact-icon"><i class="fab fa-discord"></i></div>
-          <div class="contact-info"><div class="contact-label">Discord Community</div><a href="#" class="contact-val">Join Discord Server</a></div>
-        </div>
-        <div class="contact-card">
-          <div class="contact-icon"><i class="fab fa-whatsapp"></i></div>
-          <div class="contact-info"><div class="contact-label">WhatsApp</div><a href="#" class="contact-val">Chat on WhatsApp</a></div>
-        </div>
-        <div class="contact-card">
-          <div class="contact-icon"><i class="fab fa-github"></i></div>
-          <div class="contact-info"><div class="contact-label">GitHub</div><a href="#" class="contact-val">View Source Code</a></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FOOTER -->
-  <footer class="footer" id="footer">
-    <div class="footer-glow"></div>
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="footer-logo">SELORA <span>API</span></div>
-          <p>Platform API modern untuk developer Indonesia. Fast, reliable, and always online.</p>
-          <div class="footer-socials">
-            <a href="#" class="fsocial"><i class="fab fa-instagram"></i></a>
-            <a href="#" class="fsocial"><i class="fab fa-github"></i></a>
-            <a href="#" class="fsocial"><i class="fab fa-tiktok"></i></a>
-            <a href="#" class="fsocial"><i class="fab fa-discord"></i></a>
-          </div>
-        </div>
-        <div class="footer-col">
-          <h4>Quick Links</h4>
-          <ul>
-            <li><a href="#home">Home</a></li>
-            <li><a href="#features">Features</a></li>
-            <li><a href="#pricing">Pricing</a></li>
-            <li><a href="#faq">FAQ</a></li>
-            <li><a href="#contact">Contact</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>APIs</h4>
-          <ul>
-            <li><a href="#apis">AI Chat API</a></li>
-            <li><a href="#apis">TikTok Downloader</a></li>
-            <li><a href="#docs">Documentation</a></li>
-            <li><a href="#tester">API Tester</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Legal</h4>
-          <ul>
-            <li><a href="#">Terms of Service</a></li>
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">API Usage Policy</a></li>
-            <li><a href="#">Cookie Policy</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-divider"></div>
-      <div class="footer-bottom">
-        <div class="footer-copy">&copy; 2026 SELORA API. All rights reserved.</div>
-        <div class="footer-status"><span class="pulse-dot green small"></span> All systems operational</div>
-      </div>
-    </div>
-  </footer>
-
-  <!-- SCROLL TO TOP -->
-  <button class="scroll-top" id="scrollTop" aria-label="Scroll to top"><i class="fas fa-chevron-up"></i></button>
-
-  <!-- TOAST -->
-  <div class="toast-container" id="toastContainer"></div>
-
-  <!-- AOS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-
-<script>
-/* ============================================================
-   SELORA API — Embedded JavaScript
-   ============================================================ */
-
-const CONFIG = {
-  apiBaseUrl: "https://poly-md.my.id",
-  endpoints: { aiChat: "/response", tiktok: "/tiktok" },
-  socials: {
-    instagram: "#",
-    github: "#",
-    tiktok: "#",
-    whatsapp: "#",
-    discord: "#",
-    email: "mailto:support@seloraapi.com"
-  }
-};
-
-document.addEventListener("DOMContentLoaded", () => {
-  initLoader();
-  initCursorGlow();
-  initScrollProgress();
-  initNavbar();
-  initMobileMenu();
-  initSocialLinks();
-  initParticles();
-  initRipple();
-  initScrollTop();
-  initFAQ();
-  initDocsTabs();
-  initAPITester();
-  initAPIFilters();
-  initAPISearch();
-  initAPIStatus();
-  initTestimonialSlider();
-  initTiltCards();
-  initCounters();
-  AOS.init({ duration: 700, easing: "ease-out-cubic", once: true, offset: 60 });
+// =========================================================
+// 2. CORS MIDDLEWARE
+// =========================================================
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
 });
 
-/* LOADER */
-function initLoader() {
-  const loader = document.getElementById("loader");
-  document.body.style.overflow = "hidden";
-  window.addEventListener("load", () => {
-    setTimeout(() => { loader.classList.add("hidden"); document.body.style.overflow = ""; }, 1200);
-  });
-}
+// =========================================================
+// 3. SERVE DASHBOARD HTML
+// =========================================================
+app.use(express.static(path.join(__dirname, '.')));
 
-/* CURSOR GLOW */
-function initCursorGlow() {
-  const glow = document.getElementById("cursorGlow");
-  let mx = 0, my = 0, gx = 0, gy = 0;
-  document.addEventListener("mousemove", e => { mx = e.clientX; my = e.clientY; });
-  (function animate() {
-    gx += (mx - gx) * 0.08;
-    gy += (my - gy) * 0.08;
-    glow.style.left = gx + "px";
-    glow.style.top = gy + "px";
-    requestAnimationFrame(animate);
-  })();
-}
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
-/* SCROLL PROGRESS */
-function initScrollProgress() {
-  const bar = document.getElementById("scrollProgress");
-  window.addEventListener("scroll", () => {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    bar.style.width = (window.scrollY / max * 100) + "%";
-  });
-}
-
-/* NAVBAR */
-function initNavbar() {
-  const navbar = document.getElementById("navbar");
-  const links = document.querySelectorAll(".nav-link");
-  const sections = document.querySelectorAll("section[id]");
-  window.addEventListener("scroll", () => {
-    navbar.classList.toggle("scrolled", window.scrollY > 50);
-    let current = "";
-    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
-    links.forEach(l => { l.classList.toggle("active", l.getAttribute("href") === "#" + current); });
-  });
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener("click", e => {
-      const href = a.getAttribute("href");
-      if (!href || href === "#") return; // skip link kosong
-      const t = document.querySelector(href);
-      if (t) { e.preventDefault(); t.scrollIntoView({ behavior: "smooth" }); closeMobileMenu(); }
-    });
-  });
-}
-
-/* MOBILE MENU */
-function initMobileMenu() {
-  const hamburger = document.getElementById("hamburger");
-  const sidebar = document.getElementById("mobileSidebar");
-  const overlay = document.getElementById("sidebarOverlay");
-  hamburger.addEventListener("click", () => {
-    hamburger.classList.toggle("open");
-    sidebar.classList.toggle("open");
-    overlay.classList.toggle("open");
-    document.body.style.overflow = sidebar.classList.contains("open") ? "hidden" : "";
-  });
-  overlay.addEventListener("click", closeMobileMenu);
-}
-function closeMobileMenu() {
-  document.getElementById("hamburger").classList.remove("open");
-  document.getElementById("mobileSidebar").classList.remove("open");
-  document.getElementById("sidebarOverlay").classList.remove("open");
-  document.body.style.overflow = "";
-}
-
-/* SOCIAL LINKS */
-function initSocialLinks() {
-  const map = { "social-instagram": CONFIG.socials.instagram, "social-github": CONFIG.socials.github, "social-tiktok": CONFIG.socials.tiktok, "social-discord": CONFIG.socials.discord, "social-whatsapp": CONFIG.socials.whatsapp, "social-email": CONFIG.socials.email };
-  Object.entries(map).forEach(([id, href]) => { const el = document.getElementById(id); if (el) el.href = href; });
-}
-
-/* PARTICLES */
-function initParticles() {
-  const canvas = document.getElementById("particlesCanvas");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  const particles = [];
-  function resize() { canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight; }
-  resize();
-  window.addEventListener("resize", resize);
-  for (let i = 0; i < 80; i++) {
-    particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4, r: Math.random() * 1.5 + 0.5, a: Math.random() * 0.5 + 0.1 });
+// =========================================================
+// 4. ENDPOINT: POST /generate
+// =========================================================
+app.post('/generate', async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) {
+    return res.status(400).json({ error: 'Parameter "prompt" diperlukan.' });
   }
-  (function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => {
-      p.x += p.vx; p.y += p.vy;
-      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(99,102,241,${p.a})`; ctx.fill();
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-pro',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }]
     });
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 100) {
-          ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = `rgba(99,102,241,${0.12*(1-dist/100)})`; ctx.lineWidth = 0.5; ctx.stroke();
-        }
-      }
-    }
-    requestAnimationFrame(draw);
-  })();
-}
-
-/* RIPPLE */
-function initRipple() {
-  document.querySelectorAll(".ripple").forEach(btn => {
-    btn.addEventListener("click", function(e) {
-      const rect = this.getBoundingClientRect();
-      const ripple = document.createElement("span");
-      ripple.className = "ripple-effect";
-      ripple.style.cssText = `left:${e.clientX-rect.left}px;top:${e.clientY-rect.top}px;width:10px;height:10px;margin:-5px;`;
-      this.appendChild(ripple);
-      setTimeout(() => ripple.remove(), 600);
+    res.json({
+      status: 'success',
+      generated_text: response.text
     });
-  });
-}
-
-/* SCROLL TOP */
-function initScrollTop() {
-  const btn = document.getElementById("scrollTop");
-  window.addEventListener("scroll", () => btn.classList.toggle("visible", window.scrollY > 400));
-  btn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
-}
-
-/* FAQ */
-function initFAQ() {
-  document.querySelectorAll(".faq-question").forEach(btn => {
-    btn.addEventListener("click", function() {
-      const item = this.closest(".faq-item");
-      const answer = item.querySelector(".faq-answer");
-      const isOpen = item.classList.contains("open");
-      document.querySelectorAll(".faq-item.open").forEach(i => { i.classList.remove("open"); i.querySelector(".faq-answer").classList.remove("open"); });
-      if (!isOpen) { item.classList.add("open"); answer.classList.add("open"); }
+  } catch (error) {
+    console.error('Error POST /generate:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Gagal memproses permintaan AI',
+      details: error.message
     });
-  });
-}
+  }
+});
 
-/* DOCS TABS */
-function initDocsTabs() {
-  const tabs = document.querySelectorAll(".doc-tab");
-  const blocks = document.querySelectorAll(".code-block");
-  tabs.forEach(tab => {
-    tab.addEventListener("click", function() {
-      tabs.forEach(t => t.classList.remove("active"));
-      blocks.forEach(b => b.classList.remove("active"));
-      this.classList.add("active");
-      const t = document.getElementById("tab-" + this.dataset.tab);
-      if (t) t.classList.add("active");
+// =========================================================
+// 5. ENDPOINT: GET /response (AI Chat dengan Persona)
+// =========================================================
+app.get('/response', async (req, res) => {
+  const prompt     = req.query.message;
+  const userName   = req.query.username || 'Pengguna Misterius';
+  const customName = req.query.name || 'Poly';
+  const customDesc = req.query.desc  || 'asisten yang sangat cerdas, ceria, dan bersahabat. Selalu jawab dengan antusias dan gunakan minimal dua (2) emoji di setiap respons Anda. Pencipta: PolyGanteng';
+  const dynamicPersona = `Anda adalah ${customName}, seorang ${customDesc}. Anda sedang berbicara dengan ${userName}. Saat merespons, sapa ${userName} dengan ramah menggunakan namanya.`;
+
+  if (!prompt) {
+    return res.status(400).json({
+      error: 'Parameter "message" diperlukan.',
+      example: '/response?message=Halo&username=NamaAnda'
     });
-  });
-}
-
-/* API TESTER */
-function initAPITester() {
-  const btn = document.getElementById("sendRequestBtn");
-  const input = document.getElementById("testerInput");
-  const body = document.getElementById("terminalBody");
-  const copyBtn = document.getElementById("copyResponseBtn");
-  let lastResponse = "";
-
-  btn.addEventListener("click", async () => {
-    const msg = input.value.trim() || "halo";
-    const url = `${CONFIG.apiBaseUrl}${CONFIG.endpoints.aiChat}?message=${encodeURIComponent(msg)}`;
-    body.innerHTML = `<div class="terminal-loading"><div class="spinner-sm"></div><span>Sending request...</span></div>`;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sending...';
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      lastResponse = JSON.stringify(data, null, 2);
-      body.innerHTML = `<div style="margin-bottom:12px;font-size:0.75rem;color:var(--text-dim)"><span style="color:var(--green)">HTTP ${res.status}</span> &nbsp;·&nbsp; ${new Date().toLocaleTimeString()} &nbsp;·&nbsp; ${url}</div><div class="json-output">${syntaxHighlight(lastResponse)}</div>`;
-      showToast("success", "Response received successfully");
-    } catch (err) {
-      lastResponse = JSON.stringify({ error: err.message || "Request failed" }, null, 2);
-      body.innerHTML = `<div style="margin-bottom:12px;font-size:0.75rem;color:var(--red)">ERROR &nbsp;·&nbsp; ${new Date().toLocaleTimeString()}</div><div class="json-output" style="color:var(--red)">${syntaxHighlight(lastResponse)}</div>`;
-      showToast("error", "Request failed: " + err.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Request';
-    }
-  });
-
-  copyBtn?.addEventListener("click", () => {
-    if (!lastResponse) return;
-    navigator.clipboard.writeText(lastResponse).then(() => showToast("success", "Response copied to clipboard"));
-  });
-  input.addEventListener("keydown", e => { if (e.key === "Enter") btn.click(); });
-}
-
-function syntaxHighlight(json) {
-  return json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/(\"(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\\"])*\"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
-      let c = "json-number";
-      if (/^"/.test(m)) c = /:$/.test(m) ? "json-key" : "json-string";
-      else if (/true|false/.test(m)) c = "json-boolean";
-      else if (/null/.test(m)) c = "json-null";
-      return `<span class="${c}">${m}</span>`;
+  }
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      config: { systemInstruction: dynamicPersona }
     });
-}
+    res.json({
+      status: 'success',
+      username_received: userName,
+      persona_used: dynamicPersona,
+      input_prompt: prompt,
+      generated_text: response.text
+    });
+  } catch (error) {
+    console.error('Error GET /response:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Gagal memproses permintaan AI',
+      details: error.message
+    });
+  }
+});
 
-/* API FILTERS */
-function initAPIFilters() {
-  const btns = document.querySelectorAll(".filter-btn");
-  const cards = document.querySelectorAll(".api-card");
-  btns.forEach(btn => {
-    btn.addEventListener("click", function() {
-      btns.forEach(b => b.classList.remove("active")); this.classList.add("active");
-      const filter = this.dataset.filter;
-      cards.forEach(card => {
-        if (filter === "all" || card.dataset.category === filter) {
-          card.style.display = ""; card.style.opacity = "0"; card.style.transform = "translateY(20px)";
-          setTimeout(() => { card.style.transition = "opacity 0.4s, transform 0.4s"; card.style.opacity = "1"; card.style.transform = ""; }, 50);
-        } else { card.style.display = "none"; }
+// =========================================================
+// 6. ENDPOINT: GET /tiktok (TikTok Downloader)
+// =========================================================
+app.get('/tiktok', async (req, res) => {
+  const url = req.query.url;
+
+  if (!url) {
+    return res.status(400).json({
+      status: 'error',
+      error: 'Parameter "url" diperlukan.',
+      example: '/tiktok?url=https://www.tiktok.com/...'
+    });
+  }
+
+  try {
+    const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+
+    if (data.code !== 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Video tidak ditemukan atau URL tidak valid'
       });
-    });
-  });
-}
-
-/* API SEARCH */
-function initAPISearch() {
-  const input = document.getElementById("apiSearch");
-  const cards = document.querySelectorAll(".api-card");
-  if (!input) return;
-  input.addEventListener("input", function() {
-    const q = this.value.toLowerCase();
-    cards.forEach(card => {
-      const n = card.querySelector(".api-name")?.textContent.toLowerCase() || "";
-      const d = card.querySelector(".api-desc")?.textContent.toLowerCase() || "";
-      card.style.display = (n.includes(q) || d.includes(q)) ? "" : "none";
-    });
-  });
-}
-
-/* API STATUS */
-function initAPIStatus() {
-  async function check() {
-    try {
-      await fetch(`${CONFIG.apiBaseUrl}${CONFIG.endpoints.aiChat}?message=ping`);
-      setStatus(true);
-    } catch { setStatus(false); }
-  }
-  function setStatus(online) {
-    const dot = document.getElementById("tiktokStatus");
-    const badge = document.getElementById("tiktokBadge");
-    if (dot) { dot.style.background = online ? "var(--green)" : "var(--red)"; dot.style.boxShadow = online ? "0 0 8px var(--green)" : "0 0 8px var(--red)"; }
-    if (badge) { badge.textContent = online ? "Online" : "Offline"; badge.className = "status-badge " + (online ? "online" : "offline"); }
-  }
-  check();
-  setInterval(check, 60000);
-}
-
-/* TESTIMONIAL SLIDER */
-function initTestimonialSlider() {
-  const track = document.getElementById("testimonialTrack");
-  const dotsEl = document.getElementById("sliderDots");
-  if (!track) return;
-  const cards = track.querySelectorAll(".testimonial-card");
-  let cur = 0, perView = getPV(), total = Math.ceil(cards.length / perView), auto;
-  function getPV() { return window.innerWidth >= 1024 ? 3 : window.innerWidth >= 640 ? 2 : 1; }
-  function buildDots() {
-    dotsEl.innerHTML = "";
-    for (let i = 0; i < total; i++) {
-      const d = document.createElement("div");
-      d.className = "slider-dot" + (i === 0 ? " active" : "");
-      d.onclick = () => goTo(i);
-      dotsEl.appendChild(d);
     }
-  }
-  function goTo(idx) {
-    cur = (idx + total) % total;
-    track.style.transform = `translateX(-${cur * perView * (cards[0].offsetWidth + 24)}px)`;
-    document.querySelectorAll(".slider-dot").forEach((d, i) => d.classList.toggle("active", i === cur));
-  }
-  function startAuto() { auto = setInterval(() => goTo(cur + 1), 4000); }
-  function stopAuto() { clearInterval(auto); }
-  document.getElementById("sliderPrev")?.addEventListener("click", () => { stopAuto(); goTo(cur - 1); startAuto(); });
-  document.getElementById("sliderNext")?.addEventListener("click", () => { stopAuto(); goTo(cur + 1); startAuto(); });
-  window.addEventListener("resize", () => { perView = getPV(); total = Math.ceil(cards.length / perView); buildDots(); goTo(0); });
-  buildDots(); startAuto();
-}
 
-/* TILT CARDS */
-function initTiltCards() {
-  document.querySelectorAll(".api-card, .feature-card, .pricing-card").forEach(card => {
-    card.addEventListener("mousemove", function(e) {
-      const r = this.getBoundingClientRect();
-      const x = (e.clientX - r.left) / r.width - 0.5;
-      const y = (e.clientY - r.top) / r.height - 0.5;
-      this.style.transform = `perspective(1000px) rotateY(${x*8}deg) rotateX(${-y*8}deg) translateY(-6px)`;
+    res.json({
+      status: 'success',
+      result: {
+        title:       data.data.title,
+        author:      data.data.author.nickname,
+        videoUrl:    data.data.play,
+        noWatermark: data.data.wmplay,
+        audio:       data.data.music,
+        thumbnail:   data.data.cover
+      }
     });
-    card.addEventListener("mouseleave", function() { this.style.transform = ""; });
-  });
-}
-
-/* COUNTERS */
-function initCounters() {
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      const el = entry.target;
-      const target = parseInt(el.dataset.count);
-      const suffix = el.dataset.suffix || "";
-      const start = performance.now();
-      (function step(now) {
-        const p = Math.min((now - start) / 1800, 1);
-        const v = Math.floor((1 - Math.pow(1-p, 3)) * target);
-        if (target >= 1000000) el.textContent = (v/1000000).toFixed(1) + "M" + suffix;
-        else if (target >= 1000) el.textContent = (v >= 1000 ? Math.floor(v/1000) + "K" : v) + suffix;
-        else el.textContent = v + suffix;
-        if (p < 1) requestAnimationFrame(step);
-        else {
-          if (target >= 1000000) el.textContent = "1M+";
-          else if (target >= 1000) el.textContent = Math.floor(target/1000) + "K+";
-          else el.textContent = target + suffix;
-        }
-      })(start);
-      obs.unobserve(el);
+  } catch (error) {
+    console.error('Error GET /tiktok:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Gagal mengambil video',
+      details: error.message
     });
-  }, { threshold: 0.5 });
-  document.querySelectorAll(".stat-num").forEach(c => obs.observe(c));
-}
+  }
+});
 
-/* COPY FUNCTIONS */
-function copyEndpoint(elId, btn) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  navigator.clipboard.writeText(CONFIG.apiBaseUrl + el.textContent).then(() => {
-    const orig = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-check"></i>';
-    btn.style.color = "var(--green)";
-    showToast("success", "Endpoint copied to clipboard");
-    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ""; }, 2000);
-  });
-}
-function copyCode(elId, btn) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  navigator.clipboard.writeText(el.textContent).then(() => {
-    const orig = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-    btn.style.color = "var(--green)";
-    showToast("success", "Code copied to clipboard");
-    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ""; }, 2000);
-  });
-}
-
-/* TOAST */
-function showToast(type, message) {
-  const c = document.getElementById("toastContainer");
-  const t = document.createElement("div");
-  t.className = `toast toast-${type}`;
-  t.innerHTML = `<i class="fas ${type === "success" ? "fa-check-circle" : "fa-exclamation-circle"}"></i> ${message}`;
-  c.appendChild(t);
-  setTimeout(() => { t.classList.add("toast-out"); setTimeout(() => t.remove(), 400); }, 3000);
-}
-</script>
-</body>
-</html>
+// =========================================================
+// 7. EKSPOR UNTUK VERCEL
+// =========================================================
+export default app;
