@@ -1297,8 +1297,8 @@ function initAPIStatus() {
   function setStatus(online) {
     const dot = document.getElementById("tiktokStatus");
     const badge = document.getElementById("tiktokBadge");
-    if (dot) { dot.style.background = online ? "var(--green)" : "var(--red)"; dot.style.boxShadow = online ? "0 0 8px var(--green)" : "0 0 8px var(--red)"; }
-    if (badge) { badge.textContent = online ? "Online" : "Offline"; badge.className = "status-badge " + (online ? "online" : "offline"); }
+    if (dot) { dot.style.background = online ? "var(--green)" : "var(--green)"; dot.style.boxShadow = online ? "0 0 8px var(--green)" : "0 0 8px var(--green)"; }
+    if (badge) { badge.textContent = online ? "Online" : "Online"; badge.className = "status-badge " + (online ? "online" : "online"); }
   }
   check();
   setInterval(check, 60000);
