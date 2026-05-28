@@ -86,7 +86,7 @@ input, textarea { font-family: inherit; outline: none; border: none; }
 .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 
 /* BUTTONS */
-.btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 10px; font-family: var(--font-display); font-size: 0.9rem; font-weight: 600; letter-spacing: 0.02em; transition: var(--transition); position: relative; overflow: hidden; cursor: pointer; white-space: nowrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 10px; font-family: var(--font-display); font-size: 0.9rem; font-weight: 600; letter-spacing: 0.02em; transition: var(--transition); position: relative; overflow: hidden; cursor: pointer; white-space: nowrap; z-index: 10; }
 .btn-sm { padding: 8px 16px; font-size: 0.8rem; border-radius: 8px; }
 .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 20px rgba(99,102,241,0.3); }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.5); }
@@ -213,11 +213,13 @@ section { padding: 100px 0; }
 .filter-btn { padding: 8px 18px; border-radius: 20px; font-size: 0.82rem; font-weight: 500; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); transition: var(--transition); }
 .filter-btn:hover, .filter-btn.active { background: rgba(99,102,241,0.15); border-color: var(--primary); color: var(--primary-light); }
 .api-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; max-width: 900px; margin: 0 auto; }
-.api-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; position: relative; overflow: hidden; transition: var(--transition); }
-.api-card::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 80% 20%, rgba(99,102,241,0.08), transparent 70%); opacity: 0; transition: var(--transition); }
-.api-card:hover { border-color: rgba(99,102,241,0.4); transform: translateY(-6px); box-shadow: 0 24px 50px rgba(0,0,0,0.35), 0 0 40px rgba(99,102,241,0.15); }
+
+/* API CARD — FIX: ensure buttons always receive pointer events */
+.api-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; position: relative; overflow: hidden; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
+.api-card::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 80% 20%, rgba(99,102,241,0.08), transparent 70%); opacity: 0; transition: var(--transition); pointer-events: none; }
+.api-card:hover { border-color: rgba(99,102,241,0.4); box-shadow: 0 24px 50px rgba(0,0,0,0.35), 0 0 40px rgba(99,102,241,0.15); }
 .api-card:hover::after { opacity: 1; }
-.api-card-top-border { position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--primary), var(--accent)); opacity: 0; transition: var(--transition); }
+.api-card-top-border { position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--primary), var(--accent)); opacity: 0; transition: var(--transition); pointer-events: none; }
 .api-card:hover .api-card-top-border { opacity: 1; }
 .api-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .api-icon { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.4rem; }
@@ -235,10 +237,26 @@ section { padding: 100px 0; }
 .api-endpoint code { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .copy-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; color: var(--text-muted); cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .copy-btn:hover { color: var(--primary-light); border-color: var(--primary); }
-.api-actions { display: flex; gap: 12px; }
+
+/* API ACTIONS — critical fix: always on top, always clickable */
+.api-actions { display: flex; gap: 12px; position: relative; z-index: 20; }
+.api-actions .btn { position: relative; z-index: 20; }
 
 /* TESTER */
 .tester-section { background: var(--bg); }
+
+/* Tester API Type Selector */
+.tester-api-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 32px; }
+.tester-api-tab { display: flex; align-items: center; gap: 8px; padding: 10px 22px; background: var(--surface); border: 1px solid var(--border); border-radius: 30px; font-size: 0.88rem; font-weight: 600; color: var(--text-muted); transition: var(--transition); font-family: var(--font-display); cursor: pointer; }
+.tester-api-tab:hover { color: var(--text); border-color: var(--primary); }
+.tester-api-tab.active { background: rgba(99,102,241,0.15); border-color: var(--primary); color: var(--primary-light); box-shadow: 0 0 20px rgba(99,102,241,0.2); }
+.tester-api-tab .tab-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); transition: var(--transition); flex-shrink: 0; }
+.tester-api-tab.active .tab-dot { background: var(--primary-light); box-shadow: 0 0 6px var(--primary-light); animation: pulseGreen 2s infinite; }
+
+/* Tester panels */
+.tester-panel { display: none; }
+.tester-panel.active { display: block; }
+
 .tester-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; max-width: 1000px; margin: 0 auto; }
 .tester-input-area, .tester-output-area { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
 .tester-url-bar { background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim); overflow: hidden; }
@@ -249,6 +267,28 @@ section { padding: 100px 0; }
 .form-group label { font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono); letter-spacing: 0.05em; }
 .form-group input { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text); font-size: 0.9rem; transition: var(--transition); }
 .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 16px rgba(99,102,241,0.2); }
+.form-group input::placeholder { color: var(--text-dim); }
+
+/* TikTok result display */
+.tt-result { display: flex; flex-direction: column; gap: 16px; padding: 20px; }
+.tt-thumb { width: 100%; border-radius: 12px; overflow: hidden; background: rgba(0,0,0,0.4); aspect-ratio: 9/16; max-height: 200px; object-fit: cover; border: 1px solid var(--border); }
+.tt-info { display: flex; flex-direction: column; gap: 8px; }
+.tt-title { font-size: 0.85rem; color: var(--text); font-weight: 600; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tt-author { font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+.tt-author i { color: var(--primary-light); }
+.tt-dl-btns { display: flex; flex-direction: column; gap: 8px; }
+.tt-dl-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; font-family: var(--font-display); transition: var(--transition); text-decoration: none; cursor: pointer; border: none; }
+.tt-dl-btn.primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+.tt-dl-btn.primary:hover { box-shadow: 0 4px 16px rgba(99,102,241,0.4); transform: translateY(-2px); }
+.tt-dl-btn.secondary { background: rgba(254,44,85,0.15); color: #fe2c55; border: 1px solid rgba(254,44,85,0.3); }
+.tt-dl-btn.secondary:hover { background: rgba(254,44,85,0.25); transform: translateY(-2px); }
+.tt-dl-btn.ghost { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
+.tt-dl-btn.ghost:hover { color: var(--primary-light); border-color: var(--primary); }
+
+/* Tiktok URL input hint */
+.input-hint { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; font-family: var(--font-mono); }
+.input-hint code { color: var(--accent); background: rgba(6,182,212,0.1); padding: 1px 5px; border-radius: 4px; }
+
 .terminal-header { background: rgba(0,0,0,0.4); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; gap: 8px; }
 .terminal-dots { display: flex; gap: 6px; }
 .tdot { width: 12px; height: 12px; border-radius: 50%; }
@@ -256,8 +296,8 @@ section { padding: 100px 0; }
 .tdot.yellow { background: #ffbd2e; }
 .tdot.green { background: #28c840; }
 .terminal-title { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim); }
-.terminal-body { min-height: 280px; padding: 20px; font-family: var(--font-mono); font-size: 0.8rem; overflow-y: auto; max-height: 400px; }
-.terminal-placeholder { height: 100%; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--text-dim); font-size: 0.85rem; }
+.terminal-body { min-height: 280px; padding: 20px; font-family: var(--font-mono); font-size: 0.8rem; overflow-y: auto; max-height: 480px; }
+.terminal-placeholder { height: 100%; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--text-dim); font-size: 0.85rem; text-align: center; }
 .terminal-placeholder i { font-size: 2rem; opacity: 0.3; }
 .terminal-loading { display: flex; align-items: center; gap: 10px; color: var(--accent); font-family: var(--font-mono); font-size: 0.85rem; }
 .terminal-loading .spinner-sm { width: 16px; height: 16px; border: 2px solid rgba(6,182,212,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
@@ -411,6 +451,7 @@ pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radiu
   .hero-actions { flex-direction: column; align-items: center; }
   .social-bar { gap: 8px; }
   .social-card { width: 42px; height: 42px; font-size: 1rem; }
+  .tester-api-tabs { flex-direction: column; align-items: center; }
 }
 @media (max-width: 480px) {
   .stats-grid { grid-template-columns: 1fr 1fr; }
@@ -422,9 +463,7 @@ pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radiu
 </head>
 <body>
 
-  <!-- CURSOR GLOW -->
   <div class="cursor-glow" id="cursorGlow"></div>
-  <!-- SCROLL PROGRESS -->
   <div class="scroll-progress" id="scrollProgress"></div>
 
   <!-- LOADING SCREEN -->
@@ -616,6 +655,8 @@ pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radiu
         <button class="filter-btn" data-filter="media">Media Downloader</button>
       </div>
       <div class="api-grid" id="apiGrid">
+
+        <!-- AI Chat API Card -->
         <div class="api-card" data-aos="fade-up" data-aos-delay="200" data-category="ai">
           <div class="api-card-top-border"></div>
           <div class="api-card-header">
@@ -635,10 +676,12 @@ pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radiu
             <button class="copy-btn ripple" onclick="copyEndpoint('ep-ai', this)"><i class="fas fa-copy"></i></button>
           </div>
           <div class="api-actions">
-            <a href="#tester" class="btn btn-primary btn-sm ripple">Try It Live</a>
-            <a href="#docs" class="btn btn-ghost btn-sm ripple">View Docs</a>
+            <button class="btn btn-primary btn-sm ripple" onclick="openTester('ai')"><i class="fas fa-play"></i> Try It Live</button>
+            <button class="btn btn-ghost btn-sm ripple" onclick="openDocs('fetch')"><i class="fas fa-book"></i> View Docs</button>
           </div>
         </div>
+
+        <!-- TikTok Downloader API Card -->
         <div class="api-card" data-aos="fade-up" data-aos-delay="300" data-category="media">
           <div class="api-card-top-border"></div>
           <div class="api-card-header">
@@ -658,10 +701,11 @@ pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radiu
             <button class="copy-btn ripple" onclick="copyEndpoint('ep-tiktok', this)"><i class="fas fa-copy"></i></button>
           </div>
           <div class="api-actions">
-            <a href="#tester" class="btn btn-primary btn-sm ripple">Try It Live</a>
-            <a href="#docs" class="btn btn-ghost btn-sm ripple">View Docs</a>
+            <button class="btn btn-primary btn-sm ripple" onclick="openTester('tiktok')"><i class="fas fa-play"></i> Try It Live</button>
+            <button class="btn btn-ghost btn-sm ripple" onclick="openDocs('tiktok')"><i class="fas fa-book"></i> View Docs</button>
           </div>
         </div>
+
       </div>
     </div>
   </section>
@@ -674,38 +718,92 @@ pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radiu
         <h2 class="section-title">Live API <span class="gradient-text">Tester</span></h2>
         <p class="section-desc">Uji API langsung di browser tanpa perlu tools tambahan.</p>
       </div>
-      <div class="tester-wrapper" data-aos="fade-up" data-aos-delay="150">
-        <div class="tester-input-area">
-          <div class="tester-url-bar">
-            <span class="method-badge">GET</span>
-            <span class="base-url">https://poly-md.my.id/response?message=</span>
-          </div>
-          <div class="tester-form">
-            <div class="form-group">
-              <label>Message Parameter</label>
-              <input type="text" id="testerInput" placeholder="Ketik pesan untuk AI..." value="halo" />
+
+      <!-- API Type Switcher -->
+      <div class="tester-api-tabs" data-aos="fade-up" data-aos-delay="100">
+        <button class="tester-api-tab active" id="tab-ai-btn" onclick="switchTesterTab('ai')">
+          <span class="tab-dot"></span>
+          <i class="fas fa-brain"></i> AI Chat API
+        </button>
+        <button class="tester-api-tab" id="tab-tt-btn" onclick="switchTesterTab('tiktok')">
+          <span class="tab-dot"></span>
+          <i class="fab fa-tiktok"></i> TikTok Downloader
+        </button>
+      </div>
+
+      <!-- AI Chat Panel -->
+      <div class="tester-panel active" id="panel-ai" data-aos="fade-up" data-aos-delay="150">
+        <div class="tester-wrapper">
+          <div class="tester-input-area">
+            <div class="tester-url-bar">
+              <span class="method-badge">GET</span>
+              <span class="base-url">poly-md.my.id/response?message=</span>
             </div>
-            <button class="btn btn-primary btn-glow ripple" id="sendRequestBtn">
-              <i class="fas fa-paper-plane"></i> Send Request
-            </button>
-          </div>
-        </div>
-        <div class="tester-output-area">
-          <div class="terminal-header">
-            <div class="terminal-dots">
-              <span class="tdot red"></span><span class="tdot yellow"></span><span class="tdot green"></span>
+            <div class="tester-form">
+              <div class="form-group">
+                <label>Message Parameter</label>
+                <input type="text" id="aiTesterInput" placeholder="Ketik pesan untuk AI..." value="halo" />
+              </div>
+              <button class="btn btn-primary btn-glow ripple" id="sendAiBtn">
+                <i class="fas fa-paper-plane"></i> Send Request
+              </button>
             </div>
-            <span class="terminal-title">Response</span>
-            <button class="copy-btn" id="copyResponseBtn" style="margin-left:auto;"><i class="fas fa-copy"></i> Copy</button>
           </div>
-          <div class="terminal-body" id="terminalBody">
-            <div class="terminal-placeholder">
-              <i class="fas fa-terminal"></i>
-              <p>Click "Send Request" to see the response</p>
+          <div class="tester-output-area">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="tdot red"></span><span class="tdot yellow"></span><span class="tdot green"></span>
+              </div>
+              <span class="terminal-title">Response — AI Chat</span>
+              <button class="copy-btn" id="copyAiResponseBtn" style="margin-left:auto;"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <div class="terminal-body" id="aiTerminalBody">
+              <div class="terminal-placeholder">
+                <i class="fas fa-brain"></i>
+                <p>Ketik pesan lalu klik<br><strong>Send Request</strong></p>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- TikTok Downloader Panel -->
+      <div class="tester-panel" id="panel-tiktok">
+        <div class="tester-wrapper">
+          <div class="tester-input-area">
+            <div class="tester-url-bar">
+              <span class="method-badge">GET</span>
+              <span class="base-url">poly-md.my.id/tiktok?url=</span>
+            </div>
+            <div class="tester-form">
+              <div class="form-group">
+                <label>TikTok Video URL</label>
+                <input type="text" id="ttTesterInput" placeholder="https://www.tiktok.com/@user/video/..." />
+                <span class="input-hint">Contoh: <code>https://vt.tiktok.com/ZSjXxxxxx/</code></span>
+              </div>
+              <button class="btn btn-primary btn-glow ripple" id="sendTtBtn" style="background: linear-gradient(135deg,#fe2c55,#a81c34);">
+                <i class="fab fa-tiktok"></i> Download Video
+              </button>
+            </div>
+          </div>
+          <div class="tester-output-area">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="tdot red"></span><span class="tdot yellow"></span><span class="tdot green"></span>
+              </div>
+              <span class="terminal-title">Response — TikTok Downloader</span>
+              <button class="copy-btn" id="copyTtResponseBtn" style="margin-left:auto;"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <div class="terminal-body" id="ttTerminalBody">
+              <div class="terminal-placeholder">
+                <i class="fab fa-tiktok"></i>
+                <p>Masukkan URL TikTok<br>lalu klik <strong>Download Video</strong></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -993,31 +1091,19 @@ axios.<span class="fn">get</span>(<span class="str">"https://poly-md.my.id/respo
     </div>
   </footer>
 
-  <!-- SCROLL TO TOP -->
   <button class="scroll-top" id="scrollTop" aria-label="Scroll to top"><i class="fas fa-chevron-up"></i></button>
-
-  <!-- TOAST -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- AOS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
 
 <script>
 /* ============================================================
-   SELORA API — Embedded JavaScript
+   SELORA API — JavaScript (Fixed + Enhanced)
    ============================================================ */
 
 const CONFIG = {
   apiBaseUrl: "https://poly-md.my.id",
-  endpoints: { aiChat: "/response", tiktok: "/tiktok" },
-  socials: {
-    instagram: "https://www.instagram.com/@luttheww",
-    github: "https://github.com/",
-    tiktok: "https://www.tiktok.com/@_j1njuuonrblx",
-    whatsapp: "https://wa.me/6282183012093",
-    discord: "https://discord.gg/",
-    email: "mailto:support@seloraapi.com"
-  }
+  endpoints: { aiChat: "/response", tiktok: "/tiktok" }
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1026,23 +1112,21 @@ document.addEventListener("DOMContentLoaded", () => {
   initScrollProgress();
   initNavbar();
   initMobileMenu();
-  initSocialLinks();
   initParticles();
   initRipple();
   initScrollTop();
   initFAQ();
   initDocsTabs();
-  initAPITester();
+  initAITester();
+  initTikTokTester();
   initAPIFilters();
   initAPISearch();
-  initAPIStatus();
   initTestimonialSlider();
-  initTiltCards();
   initCounters();
   AOS.init({ duration: 700, easing: "ease-out-cubic", once: true, offset: 60 });
 });
 
-/* LOADER */
+/* ─── LOADER ─── */
 function initLoader() {
   const loader = document.getElementById("loader");
   document.body.style.overflow = "hidden";
@@ -1051,21 +1135,19 @@ function initLoader() {
   });
 }
 
-/* CURSOR GLOW */
+/* ─── CURSOR GLOW ─── */
 function initCursorGlow() {
   const glow = document.getElementById("cursorGlow");
   let mx = 0, my = 0, gx = 0, gy = 0;
   document.addEventListener("mousemove", e => { mx = e.clientX; my = e.clientY; });
   (function animate() {
-    gx += (mx - gx) * 0.08;
-    gy += (my - gy) * 0.08;
-    glow.style.left = gx + "px";
-    glow.style.top = gy + "px";
+    gx += (mx - gx) * 0.08; gy += (my - gy) * 0.08;
+    glow.style.left = gx + "px"; glow.style.top = gy + "px";
     requestAnimationFrame(animate);
   })();
 }
 
-/* SCROLL PROGRESS */
+/* ─── SCROLL PROGRESS ─── */
 function initScrollProgress() {
   const bar = document.getElementById("scrollProgress");
   window.addEventListener("scroll", () => {
@@ -1074,7 +1156,7 @@ function initScrollProgress() {
   });
 }
 
-/* NAVBAR */
+/* ─── NAVBAR ─── */
 function initNavbar() {
   const navbar = document.getElementById("navbar");
   const links = document.querySelectorAll(".nav-link");
@@ -1085,17 +1167,18 @@ function initNavbar() {
     sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
     links.forEach(l => { l.classList.toggle("active", l.getAttribute("href") === "#" + current); });
   });
+  // Smooth scroll for all anchor links
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener("click", e => {
       const href = a.getAttribute("href");
-      if (!href || href === "#") return; // skip link kosong
-      const t = document.querySelector(href);
-      if (t) { e.preventDefault(); t.scrollIntoView({ behavior: "smooth" }); closeMobileMenu(); }
+      if (!href || href === "#") return;
+      const target = document.querySelector(href);
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: "smooth" }); closeMobileMenu(); }
     });
   });
 }
 
-/* MOBILE MENU */
+/* ─── MOBILE MENU ─── */
 function initMobileMenu() {
   const hamburger = document.getElementById("hamburger");
   const sidebar = document.getElementById("mobileSidebar");
@@ -1115,21 +1198,14 @@ function closeMobileMenu() {
   document.body.style.overflow = "";
 }
 
-/* SOCIAL LINKS */
-function initSocialLinks() {
-  const map = { "social-instagram": CONFIG.socials.instagram, "social-github": CONFIG.socials.github, "social-tiktok": CONFIG.socials.tiktok, "social-discord": CONFIG.socials.discord, "social-whatsapp": CONFIG.socials.whatsapp, "social-email": CONFIG.socials.email };
-  Object.entries(map).forEach(([id, href]) => { const el = document.getElementById(id); if (el) el.href = href; });
-}
-
-/* PARTICLES */
+/* ─── PARTICLES ─── */
 function initParticles() {
   const canvas = document.getElementById("particlesCanvas");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
   const particles = [];
   function resize() { canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight; }
-  resize();
-  window.addEventListener("resize", resize);
+  resize(); window.addEventListener("resize", resize);
   for (let i = 0; i < 80; i++) {
     particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4, r: Math.random() * 1.5 + 0.5, a: Math.random() * 0.5 + 0.1 });
   }
@@ -1156,7 +1232,7 @@ function initParticles() {
   })();
 }
 
-/* RIPPLE */
+/* ─── RIPPLE ─── */
 function initRipple() {
   document.querySelectorAll(".ripple").forEach(btn => {
     btn.addEventListener("click", function(e) {
@@ -1170,14 +1246,14 @@ function initRipple() {
   });
 }
 
-/* SCROLL TOP */
+/* ─── SCROLL TOP ─── */
 function initScrollTop() {
   const btn = document.getElementById("scrollTop");
   window.addEventListener("scroll", () => btn.classList.toggle("visible", window.scrollY > 400));
   btn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 }
 
-/* FAQ */
+/* ─── FAQ ─── */
 function initFAQ() {
   document.querySelectorAll(".faq-question").forEach(btn => {
     btn.addEventListener("click", function() {
@@ -1190,7 +1266,7 @@ function initFAQ() {
   });
 }
 
-/* DOCS TABS */
+/* ─── DOCS TABS ─── */
 function initDocsTabs() {
   const tabs = document.querySelectorAll(".doc-tab");
   const blocks = document.querySelectorAll(".code-block");
@@ -1205,29 +1281,68 @@ function initDocsTabs() {
   });
 }
 
-/* API TESTER */
-function initAPITester() {
-  const btn = document.getElementById("sendRequestBtn");
-  const input = document.getElementById("testerInput");
-  const body = document.getElementById("terminalBody");
-  const copyBtn = document.getElementById("copyResponseBtn");
+/* ─── TESTER TAB SWITCHER ─── */
+function switchTesterTab(api) {
+  document.querySelectorAll(".tester-api-tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".tester-panel").forEach(p => p.classList.remove("active"));
+  document.getElementById("tab-" + (api === "ai" ? "ai" : "tt") + "-btn").classList.add("active");
+  document.getElementById("panel-" + api).classList.add("active");
+}
+
+/* ─── openTester: called by "Try It Live" buttons ─── */
+function openTester(api) {
+  switchTesterTab(api);
+  const testerSection = document.getElementById("tester");
+  if (testerSection) {
+    testerSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+/* ─── openDocs: called by "View Docs" buttons ─── */
+function openDocs(tab) {
+  // Switch the correct docs tab
+  document.querySelectorAll(".doc-tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".code-block").forEach(b => b.classList.remove("active"));
+  const tabBtn = document.querySelector(`.doc-tab[data-tab="${tab}"]`);
+  const tabBlock = document.getElementById("tab-" + tab);
+  if (tabBtn) tabBtn.classList.add("active");
+  if (tabBlock) tabBlock.classList.add("active");
+  // Scroll to docs section
+  const docsSection = document.getElementById("docs");
+  if (docsSection) {
+    docsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+/* ─── AI CHAT TESTER ─── */
+function initAITester() {
+  const btn = document.getElementById("sendAiBtn");
+  const input = document.getElementById("aiTesterInput");
+  const body = document.getElementById("aiTerminalBody");
+  const copyBtn = document.getElementById("copyAiResponseBtn");
   let lastResponse = "";
 
   btn.addEventListener("click", async () => {
     const msg = input.value.trim() || "halo";
     const url = `${CONFIG.apiBaseUrl}${CONFIG.endpoints.aiChat}?message=${encodeURIComponent(msg)}`;
-    body.innerHTML = `<div class="terminal-loading"><div class="spinner-sm"></div><span>Sending request...</span></div>`;
+    body.innerHTML = `<div class="terminal-loading"><div class="spinner-sm"></div><span>Sending request to AI...</span></div>`;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sending...';
     try {
       const res = await fetch(url);
       const data = await res.json();
       lastResponse = JSON.stringify(data, null, 2);
-      body.innerHTML = `<div style="margin-bottom:12px;font-size:0.75rem;color:var(--text-dim)"><span style="color:var(--green)">HTTP ${res.status}</span> &nbsp;·&nbsp; ${new Date().toLocaleTimeString()} &nbsp;·&nbsp; ${url}</div><div class="json-output">${syntaxHighlight(lastResponse)}</div>`;
-      showToast("success", "Response received successfully");
+      body.innerHTML = `
+        <div style="margin-bottom:12px;font-size:0.75rem;color:var(--text-dim)">
+          <span style="color:var(--green)">HTTP ${res.status}</span> &nbsp;·&nbsp; ${new Date().toLocaleTimeString()} &nbsp;·&nbsp; AI Chat API
+        </div>
+        <div class="json-output">${syntaxHighlight(lastResponse)}</div>`;
+      showToast("success", "Response received!");
     } catch (err) {
       lastResponse = JSON.stringify({ error: err.message || "Request failed" }, null, 2);
-      body.innerHTML = `<div style="margin-bottom:12px;font-size:0.75rem;color:var(--red)">ERROR &nbsp;·&nbsp; ${new Date().toLocaleTimeString()}</div><div class="json-output" style="color:var(--red)">${syntaxHighlight(lastResponse)}</div>`;
+      body.innerHTML = `
+        <div style="margin-bottom:12px;font-size:0.75rem;color:var(--red)">ERROR &nbsp;·&nbsp; ${new Date().toLocaleTimeString()}</div>
+        <div class="json-output" style="color:var(--red)">${syntaxHighlight(lastResponse)}</div>`;
       showToast("error", "Request failed: " + err.message);
     } finally {
       btn.disabled = false;
@@ -1236,24 +1351,133 @@ function initAPITester() {
   });
 
   copyBtn?.addEventListener("click", () => {
-    if (!lastResponse) return;
-    navigator.clipboard.writeText(lastResponse).then(() => showToast("success", "Response copied to clipboard"));
+    if (!lastResponse) { showToast("error", "Tidak ada response untuk di-copy"); return; }
+    navigator.clipboard.writeText(lastResponse).then(() => showToast("success", "Response copied!"));
   });
   input.addEventListener("keydown", e => { if (e.key === "Enter") btn.click(); });
 }
 
-function syntaxHighlight(json) {
-  return json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/(\"(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\\"])*\"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
-      let c = "json-number";
-      if (/^"/.test(m)) c = /:$/.test(m) ? "json-key" : "json-string";
-      else if (/true|false/.test(m)) c = "json-boolean";
-      else if (/null/.test(m)) c = "json-null";
-      return `<span class="${c}">${m}</span>`;
-    });
+/* ─── TIKTOK DOWNLOADER TESTER ─── */
+function initTikTokTester() {
+  const btn = document.getElementById("sendTtBtn");
+  const input = document.getElementById("ttTesterInput");
+  const body = document.getElementById("ttTerminalBody");
+  const copyBtn = document.getElementById("copyTtResponseBtn");
+  let lastResponse = "";
+  let lastData = null;
+
+  btn.addEventListener("click", async () => {
+    const url = input.value.trim();
+    if (!url) {
+      showToast("error", "Masukkan URL TikTok terlebih dahulu");
+      input.focus();
+      return;
+    }
+    if (!url.includes("tiktok.com") && !url.includes("vt.tiktok.com")) {
+      showToast("error", "URL tidak valid. Gunakan link TikTok yang benar.");
+      return;
+    }
+
+    const apiUrl = `${CONFIG.apiBaseUrl}${CONFIG.endpoints.tiktok}?url=${encodeURIComponent(url)}`;
+    body.innerHTML = `<div class="terminal-loading"><div class="spinner-sm"></div><span>Fetching TikTok video...</span></div>`;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Fetching...';
+
+    try {
+      const res = await fetch(apiUrl);
+      const data = await res.json();
+      lastResponse = JSON.stringify(data, null, 2);
+      lastData = data;
+
+      // Try to render a nice download UI if response has video links
+      const result = data.result || data.data || data;
+      const hasVideo = result && (result.video || result.videoUrl || result.nowm || result.nowatermark || result.play || result.nwm_video_url || result.hdplay);
+
+      if (data.status === "success" || data.code === 200 || hasVideo) {
+        body.innerHTML = renderTikTokResult(data, result);
+      } else {
+        // Fallback: show raw JSON
+        body.innerHTML = `
+          <div style="margin-bottom:12px;font-size:0.75rem;color:var(--text-dim)">
+            <span style="color:var(--green)">HTTP ${res.status}</span> &nbsp;·&nbsp; ${new Date().toLocaleTimeString()} &nbsp;·&nbsp; TikTok Downloader
+          </div>
+          <div class="json-output">${syntaxHighlight(lastResponse)}</div>`;
+      }
+      showToast("success", "Video info berhasil diambil!");
+    } catch (err) {
+      lastResponse = JSON.stringify({ error: err.message || "Request failed" }, null, 2);
+      body.innerHTML = `
+        <div style="margin-bottom:12px;font-size:0.75rem;color:var(--red)">ERROR &nbsp;·&nbsp; ${new Date().toLocaleTimeString()}</div>
+        <div style="color:var(--text-muted);font-size:0.82rem;margin-bottom:12px;">
+          <i class="fas fa-exclamation-triangle" style="color:var(--red)"></i> 
+          Gagal mengambil video. Pastikan URL TikTok valid dan coba lagi.
+        </div>
+        <div class="json-output" style="color:var(--red)">${syntaxHighlight(lastResponse)}</div>`;
+      showToast("error", "Gagal fetch: " + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fab fa-tiktok"></i> Download Video';
+    }
+  });
+
+  copyBtn?.addEventListener("click", () => {
+    if (!lastResponse) { showToast("error", "Tidak ada response untuk di-copy"); return; }
+    navigator.clipboard.writeText(lastResponse).then(() => showToast("success", "Response copied!"));
+  });
+
+  input.addEventListener("keydown", e => { if (e.key === "Enter") btn.click(); });
 }
 
-/* API FILTERS */
+function renderTikTokResult(data, result) {
+  // Try various common API response shapes
+  const title = result.title || result.desc || result.caption || "TikTok Video";
+  const author = result.author || result.nickname || result.creator || (result.author_info && result.author_info.nickname) || "Unknown";
+  const thumb = result.cover || result.thumbnail || result.origin_cover || result.dynamicCover || "";
+
+  // Collect download links
+  const links = [];
+  const tryLink = (url, label, icon, cls) => { if (url && typeof url === "string" && url.startsWith("http")) links.push({ url, label, icon, cls }); };
+
+  tryLink(result.hdplay || result.hd_video, "Download HD (No Watermark)", "fa-crown", "primary");
+  tryLink(result.nowm || result.noWatermark || result.nwm_video_url || result.play_addr_h264, "Download No Watermark", "fa-download", "secondary");
+  tryLink(result.video || result.videoUrl || result.play, "Download Video", "fa-video", "ghost");
+  tryLink(result.music || result.music_url || result.bgm_info?.play_url, "Download Audio", "fa-music", "ghost");
+
+  let html = `<div class="tt-result">`;
+
+  // Thumbnail
+  if (thumb) {
+    html += `<img src="${thumb}" class="tt-thumb" alt="Thumbnail" onerror="this.style.display='none'">`;
+  }
+
+  // Info
+  html += `<div class="tt-info">
+    <div class="tt-title">${escHtml(title)}</div>
+    <div class="tt-author"><i class="fas fa-user-circle"></i> @${escHtml(String(author))}</div>
+  </div>`;
+
+  // Download buttons
+  if (links.length > 0) {
+    html += `<div class="tt-dl-btns">`;
+    links.forEach(({ url, label, icon, cls }) => {
+      html += `<a href="${url}" target="_blank" rel="noopener" class="tt-dl-btn ${cls}"><i class="fas ${icon}"></i> ${label}</a>`;
+    });
+    html += `</div>`;
+  } else {
+    // No recognized links — show raw JSON
+    html += `<div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:8px;">Raw API Response:</div>
+             <div class="json-output" style="font-size:0.75rem;">${syntaxHighlight(JSON.stringify(data, null, 2))}</div>`;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+/* ─── API FILTERS ─── */
 function initAPIFilters() {
   const btns = document.querySelectorAll(".filter-btn");
   const cards = document.querySelectorAll(".api-card");
@@ -1263,15 +1487,14 @@ function initAPIFilters() {
       const filter = this.dataset.filter;
       cards.forEach(card => {
         if (filter === "all" || card.dataset.category === filter) {
-          card.style.display = ""; card.style.opacity = "0"; card.style.transform = "translateY(20px)";
-          setTimeout(() => { card.style.transition = "opacity 0.4s, transform 0.4s"; card.style.opacity = "1"; card.style.transform = ""; }, 50);
+          card.style.display = "";
         } else { card.style.display = "none"; }
       });
     });
   });
 }
 
-/* API SEARCH */
+/* ─── API SEARCH ─── */
 function initAPISearch() {
   const input = document.getElementById("apiSearch");
   const cards = document.querySelectorAll(".api-card");
@@ -1286,25 +1509,7 @@ function initAPISearch() {
   });
 }
 
-/* API STATUS */
-function initAPIStatus() {
-  async function check() {
-    try {
-      await fetch(`${CONFIG.apiBaseUrl}${CONFIG.endpoints.aiChat}?message=ping`);
-      setStatus(true);
-    } catch { setStatus(false); }
-  }
-  function setStatus(online) {
-    const dot = document.getElementById("tiktokStatus");
-    const badge = document.getElementById("tiktokBadge");
-    if (dot) { dot.style.background = online ? "var(--green)" : "var(--green)"; dot.style.boxShadow = online ? "0 0 8px var(--green)" : "0 0 8px var(--green)"; }
-    if (badge) { badge.textContent = online ? "Online" : "Online"; badge.className = "status-badge " + (online ? "online" : "online"); }
-  }
-  check();
-  setInterval(check, 60000);
-}
-
-/* TESTIMONIAL SLIDER */
+/* ─── TESTIMONIAL SLIDER ─── */
 function initTestimonialSlider() {
   const track = document.getElementById("testimonialTrack");
   const dotsEl = document.getElementById("sliderDots");
@@ -1323,7 +1528,8 @@ function initTestimonialSlider() {
   }
   function goTo(idx) {
     cur = (idx + total) % total;
-    track.style.transform = `translateX(-${cur * perView * (cards[0].offsetWidth + 24)}px)`;
+    const cardW = cards[0] ? (cards[0].offsetWidth + 24) : 0;
+    track.style.transform = `translateX(-${cur * perView * cardW}px)`;
     document.querySelectorAll(".slider-dot").forEach((d, i) => d.classList.toggle("active", i === cur));
   }
   function startAuto() { auto = setInterval(() => goTo(cur + 1), 4000); }
@@ -1334,20 +1540,7 @@ function initTestimonialSlider() {
   buildDots(); startAuto();
 }
 
-/* TILT CARDS */
-function initTiltCards() {
-  document.querySelectorAll(".api-card, .feature-card, .pricing-card").forEach(card => {
-    card.addEventListener("mousemove", function(e) {
-      const r = this.getBoundingClientRect();
-      const x = (e.clientX - r.left) / r.width - 0.5;
-      const y = (e.clientY - r.top) / r.height - 0.5;
-      this.style.transform = `perspective(1000px) rotateY(${x*8}deg) rotateX(${-y*8}deg) translateY(-6px)`;
-    });
-    card.addEventListener("mouseleave", function() { this.style.transform = ""; });
-  });
-}
-
-/* COUNTERS */
+/* ─── COUNTERS ─── */
 function initCounters() {
   const obs = new IntersectionObserver(entries => {
     entries.forEach(entry => {
@@ -1375,7 +1568,19 @@ function initCounters() {
   document.querySelectorAll(".stat-num").forEach(c => obs.observe(c));
 }
 
-/* COPY FUNCTIONS */
+/* ─── SYNTAX HIGHLIGHT ─── */
+function syntaxHighlight(json) {
+  return json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/(\"(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\\"])*\"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
+      let c = "json-number";
+      if (/^"/.test(m)) c = /:$/.test(m) ? "json-key" : "json-string";
+      else if (/true|false/.test(m)) c = "json-boolean";
+      else if (/null/.test(m)) c = "json-null";
+      return `<span class="${c}">${m}</span>`;
+    });
+}
+
+/* ─── COPY HELPERS ─── */
 function copyEndpoint(elId, btn) {
   const el = document.getElementById(elId);
   if (!el) return;
@@ -1383,7 +1588,7 @@ function copyEndpoint(elId, btn) {
     const orig = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-check"></i>';
     btn.style.color = "var(--green)";
-    showToast("success", "Endpoint copied to clipboard");
+    showToast("success", "Endpoint copied!");
     setTimeout(() => { btn.innerHTML = orig; btn.style.color = ""; }, 2000);
   });
 }
@@ -1394,12 +1599,12 @@ function copyCode(elId, btn) {
     const orig = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
     btn.style.color = "var(--green)";
-    showToast("success", "Code copied to clipboard");
+    showToast("success", "Code copied!");
     setTimeout(() => { btn.innerHTML = orig; btn.style.color = ""; }, 2000);
   });
 }
 
-/* TOAST */
+/* ─── TOAST ─── */
 function showToast(type, message) {
   const c = document.getElementById("toastContainer");
   const t = document.createElement("div");
