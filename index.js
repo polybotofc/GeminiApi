@@ -7,19 +7,11 @@ import { GoogleGenAI } from '@google/genai';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Security Packages
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
-import timeout from 'connect-timeout';
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// Trust proxy - diperlukan saat deploy di Vercel / reverse proxy
-app.set('trust proxy', 1);
 
 // =========================================================
 // 2. GOOGLE AI SETUP
@@ -32,88 +24,15 @@ const ai = new GoogleGenAI({
 // 3. MIDDLEWARE DASAR
 // =========================================================
 app.use(express.json({ limit: '1mb' }));
-
-// Hide Express Info
 app.disable('x-powered-by');
 
-// Timeout Request
-app.use(timeout('15s'));
-
-// Helmet Security
-app.use(helmet());
-
 // =========================================================
-// 4. RATE LIMIT
+// 4. CORS
 // =========================================================
-const globalLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 menit
-  max: 60,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    status: 'error',
-    message: 'Terlalu banyak request.'
-  }
-});
-
-const aiLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 15,
-  message: {
-    status: 'error',
-    message: 'Limit AI tercapai. Coba lagi nanti.'
-  }
-});
-
-const tiktokLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 10,
-  message: {
-    status: 'error',
-    message: 'Limit TikTok downloader tercapai.'
-  }
-});
-
-app.use(globalLimiter);
-
-// =========================================================
-// 5. API KEY PROTECTION
-// =========================================================
-const API_KEY = process.env.API_KEY;
-
 app.use((req, res, next) => {
-  // Skip API key untuk homepage
-  if (req.path === '/') return next();
-
-  const userKey = req.headers['x-api-key'];
-
-  if (!userKey || userKey !== API_KEY) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'API key tidak valid'
-    });
-  }
-
-  next();
-});
-
-// =========================================================
-// 6. CORS AMAN
-// =========================================================
-const allowedOrigins = [
-  'https://poly-md.my.id',
-  'http://localhost:3000'
-];
-
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
@@ -123,7 +42,7 @@ app.use((req, res, next) => {
 });
 
 // =========================================================
-// 7. SERVE DASHBOARD HTML
+// 5. SERVE DASHBOARD HTML
 // =========================================================
 app.use(express.static(path.join(__dirname, '.')));
 
@@ -132,9 +51,9 @@ app.get('/', (req, res) => {
 });
 
 // =========================================================
-// 8. ENDPOINT: POST /generate
+// 6. ENDPOINT: POST /generate
 // =========================================================
-app.post('/generate', aiLimiter, async (req, res) => {
+app.post('/generate', async (req, res) => {
   const { prompt } = req.body;
 
   if (!prompt) {
@@ -144,7 +63,6 @@ app.post('/generate', aiLimiter, async (req, res) => {
     });
   }
 
-  // Batasi panjang prompt
   if (prompt.length > 2000) {
     return res.status(400).json({
       status: 'error',
@@ -178,16 +96,13 @@ app.post('/generate', aiLimiter, async (req, res) => {
 });
 
 // =========================================================
-// 9. ENDPOINT: GET /response
+// 7. ENDPOINT: GET /response
 // =========================================================
-app.get('/response', aiLimiter, async (req, res) => {
+app.get('/response', async (req, res) => {
   const prompt = req.query.message;
   const userName = req.query.username || 'Pengguna';
   const customName = req.query.name || 'Poly';
-
-  const customDesc =
-    req.query.desc ||
-    'asisten AI yang ramah, pintar, dan membantu';
+  const customDesc = req.query.desc || 'asisten AI yang ramah, pintar, dan membantu';
 
   if (!prompt) {
     return res.status(400).json({
@@ -236,9 +151,9 @@ Jawab dengan ramah dan singkat.`;
 });
 
 // =========================================================
-// 10. ENDPOINT: GET /tiktok
+// 8. ENDPOINT: GET /tiktok
 // =========================================================
-app.get('/tiktok', tiktokLimiter, async (req, res) => {
+app.get('/tiktok', async (req, res) => {
   const url = req.query.url;
 
   if (!url) {
@@ -248,11 +163,7 @@ app.get('/tiktok', tiktokLimiter, async (req, res) => {
     });
   }
 
-  // Validasi TikTok URL
-  if (
-    !url.includes('tiktok.com') &&
-    !url.includes('vt.tiktok.com')
-  ) {
+  if (!url.includes('tiktok.com')) {
     return res.status(400).json({
       status: 'error',
       message: 'URL harus TikTok'
@@ -260,11 +171,8 @@ app.get('/tiktok', tiktokLimiter, async (req, res) => {
   }
 
   try {
-    const apiUrl =
-      `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
-
+    const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
     const response = await fetch(apiUrl);
-
     const data = await response.json();
 
     if (data.code !== 0) {
@@ -296,18 +204,10 @@ app.get('/tiktok', tiktokLimiter, async (req, res) => {
 });
 
 // =========================================================
-// 11. HANDLE ERROR
+// 9. HANDLE ERROR
 // =========================================================
 app.use((err, req, res, next) => {
-  if (err.code === 'ETIMEDOUT') {
-    return res.status(408).json({
-      status: 'error',
-      message: 'Request timeout'
-    });
-  }
-
   console.error(err);
-
   res.status(500).json({
     status: 'error',
     message: 'Internal Server Error'
@@ -315,7 +215,7 @@ app.use((err, req, res, next) => {
 });
 
 // =========================================================
-// 12. START SERVER (LOCAL)
+// 10. START SERVER (LOCAL)
 // =========================================================
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
@@ -324,6 +224,6 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // =========================================================
-// 13. EXPORT UNTUK VERCEL
+// 11. EXPORT UNTUK VERCEL
 // =========================================================
 export default app;
