@@ -1,30 +1,30 @@
 {
-"name": "rproject",
-"version": "1.0.0",
-"description": "Secure AI API + TikTok Downloader",
-"main": "index.mjs",
-"type": "module",
-"scripts": {
-"start": "node index.mjs",
-"dev": "node --watch index.mjs",
-"test": "echo "No test specified""
-},
-"keywords": [
-"express",
-"gemini",
-"tiktok-downloader",
-"api",
-"vercel"
-],
-"author": "Poly",
-"license": "ISC",
-"dependencies": {
-"@google/genai": "^1.29.1",
-"api-dylux": "^1.0.0",
-"connect-timeout": "^1.9.0",
-"dotenv": "^17.2.3",
-"express": "^5.1.0",
-"express-rate-limit": "^7.5.0",
-"helmet": "^8.1.0"
-}
+  "name": "rproject",
+  "version": "1.0.0",
+  "description": "Secure AI API + TikTok Downloader",
+  "main": "index.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node index.mjs",
+    "dev": "node --watch index.mjs",
+    "test": "echo \"No test specified\""
+  },
+  "keywords": [
+    "express",
+    "gemini",
+    "tiktok-downloader",
+    "api",
+    "vercel"
+  ],
+  "author": "Poly",
+  "license": "ISC",
+  "dependencies": {
+    "@google/genai": "^1.29.1",
+    "api-dylux": "^1.0.0",
+    "connect-timeout": "^1.9.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0"
+  }
 }
