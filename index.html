@@ -678,6 +678,10 @@ pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radiu
           <div class="api-actions">
             <button class="btn btn-primary btn-sm ripple" onclick="openTester('ai')"><i class="fas fa-play"></i> Try It Live</button>
             <button class="btn btn-ghost btn-sm ripple" onclick="openDocs('fetch')"><i class="fas fa-book"></i> View Docs</button>
+            <a class="btn btn-ghost btn-sm ripple" 
+   href="https://www.poly-md.my.id/response?message=hi&username=user">
+    <i class="fas fa-book"></i> Endpoint
+</a>
           </div>
         </div>
 
@@ -703,6 +707,10 @@ pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radiu
           <div class="api-actions">
             <button class="btn btn-primary btn-sm ripple" onclick="openTester('tiktok')"><i class="fas fa-play"></i> Try It Live</button>
             <button class="btn btn-ghost btn-sm ripple" onclick="openDocs('tiktok')"><i class="fas fa-book"></i> View Docs</button>
+            <a class="btn btn-ghost btn-sm ripple" 
+   href="https://www.poly-md.my.id/tiktok?url=https://vt.tiktok.com/...">
+    <i class="fas fa-book"></i> Endpoint
+</a>
           </div>
         </div>
 
@@ -827,7 +835,7 @@ pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radiu
             <span class="code-lang">JavaScript — Fetch API</span>
             <button class="copy-btn ripple" onclick="copyCode('code-fetch', this)"><i class="fas fa-copy"></i> Copy</button>
           </div>
-          <pre id="code-fetch"><code><span class="kw">fetch</span>(<span class="str">"https://poly-md.my.id/response?message=halo"</span>)
+          <pre id="code-fetch"><code><span class="kw">fetch</span>(<span class="str">"https://www.poly-md.my.id/response?message=halo&username=user"</span>)
   .<span class="fn">then</span>(res =&gt; res.<span class="fn">json</span>())
   .<span class="fn">then</span>(data =&gt; <span class="fn">console</span>.<span class="fn">log</span>(data))
   .<span class="fn">catch</span>(err =&gt; <span class="fn">console</span>.<span class="fn">error</span>(<span class="str">"Error:"</span>, err));</code></pre>
@@ -839,7 +847,7 @@ pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radiu
           </div>
           <pre id="code-axios"><code><span class="kw">import</span> axios <span class="kw">from</span> <span class="str">'axios'</span>;
 
-axios.<span class="fn">get</span>(<span class="str">"https://poly-md.my.id/response?message=halo"</span>)
+axios.<span class="fn">get</span>(<span class="str">"https://www.poly-md.my.id/response?message=halo"</span>)
   .<span class="fn">then</span>(res =&gt; <span class="fn">console</span>.<span class="fn">log</span>(res.data))
   .<span class="fn">catch</span>(err =&gt; <span class="fn">console</span>.<span class="fn">error</span>(<span class="str">"Error:"</span>, err));</code></pre>
         </div>
@@ -851,7 +859,7 @@ axios.<span class="fn">get</span>(<span class="str">"https://poly-md.my.id/respo
           <pre id="code-tiktok"><code><span class="cm">// TikTok Downloader API</span>
 <span class="kw">const</span> videoUrl = <span class="str">"https://www.tiktok.com/@user/video/123456789"</span>;
 
-<span class="kw">fetch</span>(<span class="str">`https://poly-md.my.id/tiktok?url=<span class="tmpl">${videoUrl}</span>`</span>)
+<span class="kw">fetch</span>(<span class="str">`https://www.poly-md.my.id/tiktok?url=<span class="tmpl">${videoUrl}</span>`</span>)
   .<span class="fn">then</span>(res =&gt; res.<span class="fn">json</span>())
   .<span class="fn">then</span>(data =&gt; {
     <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Video URL:"</span>, data.result.videoUrl);
@@ -988,7 +996,7 @@ axios.<span class="fn">get</span>(<span class="str">"https://poly-md.my.id/respo
       <div class="faq-list" data-aos="fade-up" data-aos-delay="100">
         <div class="faq-item">
           <button class="faq-question">Bagaimana cara menggunakan API?<i class="fas fa-chevron-down faq-icon"></i></button>
-          <div class="faq-answer"><p>Cukup lakukan HTTP GET request ke endpoint yang tersedia. Contoh: <code>GET https://poly-md.my.id/response?message=halo</code>. Response akan dikembalikan dalam format JSON.</p></div>
+          <div class="faq-answer"><p>Cukup lakukan HTTP GET request ke endpoint yang tersedia. Contoh: <code>GET https://www.poly-md.my.id/response?message=halo</code>. Response akan dikembalikan dalam format JSON.</p></div>
         </div>
         <div class="faq-item">
           <button class="faq-question">Bagaimana mendapatkan API key?<i class="fas fa-chevron-down faq-icon"></i></button>
@@ -1102,7 +1110,7 @@ axios.<span class="fn">get</span>(<span class="str">"https://poly-md.my.id/respo
    ============================================================ */
 
 const CONFIG = {
-  apiBaseUrl: "https://poly-md.my.id",
+  apiBaseUrl: "https://www.poly-md.my.id",
   endpoints: { aiChat: "/response", tiktok: "/tiktok" }
 };
 
