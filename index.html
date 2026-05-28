@@ -745,7 +745,7 @@ pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radiu
           <div class="tester-input-area">
             <div class="tester-url-bar">
               <span class="method-badge">GET</span>
-              <span class="base-url">poly-md.my.id/response?message=</span>
+              <span class="base-url">poly-md.my.id/response?message=pesan&username=user</span>
             </div>
             <div class="tester-form">
               <div class="form-group">
@@ -1337,16 +1337,25 @@ function initAITester() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sending...';
     try {
-      const res = await fetch(url);
-      const data = await res.json();
-      lastResponse = JSON.stringify(data, null, 2);
-      body.innerHTML = `
-        <div style="margin-bottom:12px;font-size:0.75rem;color:var(--text-dim)">
-          <span style="color:var(--green)">HTTP ${res.status}</span> &nbsp;·&nbsp; ${new Date().toLocaleTimeString()} &nbsp;·&nbsp; AI Chat API
-        </div>
-        <div class="json-output">${syntaxHighlight(lastResponse)}</div>`;
-      showToast("success", "Response received!");
-    } catch (err) {
+  const res = await fetch(url);
+  const data = await res.json();
+
+  lastResponse = data.generated_text || "No response, try to send it again.";
+
+  body.innerHTML = `
+    <div style="margin-bottom:12px;font-size:0.75rem;color:var(--text-dim)">
+      <span style="color:var(--green)">HTTP ${res.status}</span>
+      &nbsp;·&nbsp;
+      ${new Date().toLocaleTimeString()}
+      &nbsp;·&nbsp; AI Chat API
+    </div>
+
+    <div class="json-output">${lastResponse}</div>
+  `;
+
+  showToast("success", "Response received!");
+
+} catch (err) {
       lastResponse = JSON.stringify({ error: err.message || "Request failed" }, null, 2);
       body.innerHTML = `
         <div style="margin-bottom:12px;font-size:0.75rem;color:var(--red)">ERROR &nbsp;·&nbsp; ${new Date().toLocaleTimeString()}</div>
