@@ -1340,7 +1340,7 @@ function initAITester() {
   const res = await fetch(url);
   const data = await res.json();
 
-  lastResponse = data.generated_text || "No response, try to send it again.";
+  lastResponse = data.result || data.response || data.message || data.generated_text || data.text || "No response.";
 
   body.innerHTML = `
     <div style="margin-bottom:12px;font-size:0.75rem;color:var(--text-dim)">
