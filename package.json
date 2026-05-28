@@ -2,9 +2,9 @@
   "name": "rproject",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.mjs",
+  "main": "index.js",
   "scripts": {
-    "start": "node index.mjs"
+    "start": "node index.js"
   },
   "dependencies": {
     "@google/genai": "^1.29.1",
@@ -12,6 +12,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.0",
+    "groq-sdk": "^0.9.1",
     "helmet": "^8.1.0"
   }
 }
