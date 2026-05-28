@@ -2,11 +2,11 @@
 "name": "rproject",
 "version": "1.0.0",
 "description": "Secure AI API + TikTok Downloader",
-"main": "index.js",
+"main": "index.mjs",
 "type": "module",
 "scripts": {
-"start": "node index.js",
-"dev": "node --watch index.js",
+"start": "node index.mjs",
+"dev": "node --watch index.mjs",
 "test": "echo "No test specified""
 },
 "keywords": [
