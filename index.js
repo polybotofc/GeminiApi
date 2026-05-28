@@ -72,7 +72,7 @@ app.post('/generate', async (req, res) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
+      model: 'gemini-1.5-flash-8b',
       contents: [
         {
           role: 'user',
