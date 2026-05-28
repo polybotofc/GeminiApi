@@ -1,26 +1,13 @@
 {
   "name": "rproject",
   "version": "1.0.0",
-  "description": "Secure AI API + TikTok Downloader",
-  "main": "index.js",
   "type": "module",
+  "main": "index.mjs",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node --watch index.js",
-    "test": "echo \"No test specified\""
+    "start": "node index.mjs"
   },
-  "keywords": [
-    "express",
-    "gemini",
-    "tiktok-downloader",
-    "api",
-    "vercel"
-  ],
-  "author": "Poly",
-  "license": "ISC",
   "dependencies": {
     "@google/genai": "^1.29.1",
-    "api-dylux": "^1.0.0",
     "connect-timeout": "^1.9.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
