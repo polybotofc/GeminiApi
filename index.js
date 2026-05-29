@@ -5,6 +5,7 @@ import 'dotenv/config';
 import express from 'express';
 import { GoogleGenAI } from '@google/genai';
 import Groq from 'groq-sdk';
+import ytdl from '@distube/ytdl-core';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -24,7 +25,6 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 // 3. HELPER: GENERATE AI DENGAN FALLBACK
 // =========================================================
 async function generateAI(prompt, systemPrompt = '') {
-  // Coba Gemini dulu
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -38,11 +38,10 @@ async function generateAI(prompt, systemPrompt = '') {
       geminiError?.message?.includes('quota') ||
       geminiError?.message?.includes('RESOURCE_EXHAUSTED');
 
-    if (!isQuotaError) throw geminiError; // error lain, lempar langsung
+    if (!isQuotaError) throw geminiError;
 
     console.warn('[AI] Gemini quota habis, fallback ke Groq...');
 
-    // Fallback ke Groq
     const messages = [];
     if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
     messages.push({ role: 'user', content: prompt });
@@ -159,7 +158,97 @@ app.get('/tiktok', async (req, res) => {
 });
 
 // =========================================================
-// 10. HANDLE ERROR
+// 10. ENDPOINT: GET /ytmp3
+// =========================================================
+app.get('/ytmp3', async (req, res) => {
+  const url = req.query.url;
+
+  if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
+
+  const isYT = url.includes('youtube.com') || url.includes('youtu.be');
+  if (!isYT) return res.status(400).json({ status: 'error', message: 'URL harus YouTube.' });
+
+  try {
+    const info = await ytdl.getInfo(url);
+    const videoDetails = info.videoDetails;
+
+    const audioFormat = ytdl.chooseFormat(info.formats, {
+      quality: 'highestaudio',
+      filter: 'audioonly'
+    });
+
+    if (!audioFormat) return res.status(404).json({ status: 'error', message: 'Format audio tidak ditemukan.' });
+
+    res.json({
+      status: 'success',
+      result: {
+        title: videoDetails.title,
+        author: videoDetails.author.name,
+        duration: videoDetails.lengthSeconds,
+        thumbnail: videoDetails.thumbnails.at(-1)?.url,
+        audioUrl: audioFormat.url,
+        mimeType: audioFormat.mimeType,
+        bitrate: audioFormat.averageBitrate
+      }
+    });
+  } catch (error) {
+    console.error('Error GET /ytmp3:', error);
+    res.status(500).json({ status: 'error', message: 'Gagal mengambil audio YouTube.' });
+  }
+});
+
+// =========================================================
+// 11. ENDPOINT: GET /ytmp4
+// =========================================================
+app.get('/ytmp4', async (req, res) => {
+  const url = req.query.url;
+  const quality = req.query.quality || '720p';
+
+  if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
+
+  const isYT = url.includes('youtube.com') || url.includes('youtu.be');
+  if (!isYT) return res.status(400).json({ status: 'error', message: 'URL harus YouTube.' });
+
+  try {
+    const info = await ytdl.getInfo(url);
+    const videoDetails = info.videoDetails;
+
+    let videoFormat = ytdl.chooseFormat(info.formats, {
+      filter: format =>
+        format.hasVideo &&
+        format.hasAudio &&
+        format.qualityLabel === quality
+    });
+
+    if (!videoFormat) {
+      videoFormat = ytdl.chooseFormat(info.formats, {
+        filter: format => format.hasVideo && format.hasAudio
+      });
+    }
+
+    if (!videoFormat) return res.status(404).json({ status: 'error', message: 'Format video tidak ditemukan.' });
+
+    res.json({
+      status: 'success',
+      result: {
+        title: videoDetails.title,
+        author: videoDetails.author.name,
+        duration: videoDetails.lengthSeconds,
+        thumbnail: videoDetails.thumbnails.at(-1)?.url,
+        videoUrl: videoFormat.url,
+        quality: videoFormat.qualityLabel,
+        mimeType: videoFormat.mimeType,
+        fps: videoFormat.fps
+      }
+    });
+  } catch (error) {
+    console.error('Error GET /ytmp4:', error);
+    res.status(500).json({ status: 'error', message: 'Gagal mengambil video YouTube.' });
+  }
+});
+
+// =========================================================
+// 12. HANDLE ERROR
 // =========================================================
 app.use((err, req, res, next) => {
   console.error(err);
@@ -167,13 +256,13 @@ app.use((err, req, res, next) => {
 });
 
 // =========================================================
-// 11. START SERVER (LOCAL)
+// 13. START SERVER (LOCAL)
 // =========================================================
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => console.log(`Server berjalan di port ${PORT}`));
 }
 
 // =========================================================
-// 12. EXPORT UNTUK VERCEL
+// 14. EXPORT UNTUK VERCEL
 // =========================================================
 export default app;
