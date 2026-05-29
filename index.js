@@ -5,7 +5,6 @@ import 'dotenv/config';
 import express from 'express';
 import { GoogleGenAI } from '@google/genai';
 import Groq from 'groq-sdk';
-import ytdl from '@distube/ytdl-core';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -57,13 +56,38 @@ async function generateAI(prompt, systemPrompt = '') {
 }
 
 // =========================================================
-// 4. MIDDLEWARE DASAR
+// 4. HELPER: YOUTUBE VIA COBALT API
+// =========================================================
+async function getYoutubeCobalt(url, isAudioOnly = false, quality = '720') {
+  const response = await fetch('https://api.cobalt.tools/api/json', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      url,
+      vQuality: quality,
+      isAudioOnly
+    })
+  });
+
+  if (!response.ok) throw new Error(`Cobalt API error: ${response.status}`);
+
+  const data = await response.json();
+  if (data.status === 'error') throw new Error(data.text || 'Cobalt gagal memproses.');
+
+  return data;
+}
+
+// =========================================================
+// 5. MIDDLEWARE DASAR
 // =========================================================
 app.use(express.json({ limit: '1mb' }));
 app.disable('x-powered-by');
 
 // =========================================================
-// 5. CORS
+// 6. CORS
 // =========================================================
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -74,7 +98,7 @@ app.use((req, res, next) => {
 });
 
 // =========================================================
-// 6. SERVE DASHBOARD HTML
+// 7. SERVE DASHBOARD HTML
 // =========================================================
 app.use(express.static(path.join(__dirname, '.')));
 app.get('/', (req, res) => {
@@ -82,7 +106,7 @@ app.get('/', (req, res) => {
 });
 
 // =========================================================
-// 7. ENDPOINT: POST /generate
+// 8. ENDPOINT: POST /generate
 // =========================================================
 app.post('/generate', async (req, res) => {
   const { prompt } = req.body;
@@ -100,7 +124,7 @@ app.post('/generate', async (req, res) => {
 });
 
 // =========================================================
-// 8. ENDPOINT: GET /response
+// 9. ENDPOINT: GET /response
 // =========================================================
 app.get('/response', async (req, res) => {
   const prompt = req.query.message;
@@ -125,7 +149,7 @@ Jawab dengan ramah dan singkat.`;
 });
 
 // =========================================================
-// 9. ENDPOINT: GET /tiktok
+// 10. ENDPOINT: GET /tiktok
 // =========================================================
 app.get('/tiktok', async (req, res) => {
   const url = req.query.url;
@@ -158,7 +182,7 @@ app.get('/tiktok', async (req, res) => {
 });
 
 // =========================================================
-// 10. ENDPOINT: GET /ytmp3
+// 11. ENDPOINT: GET /ytmp3
 // =========================================================
 app.get('/ytmp3', async (req, res) => {
   const url = req.query.url;
@@ -169,40 +193,27 @@ app.get('/ytmp3', async (req, res) => {
   if (!isYT) return res.status(400).json({ status: 'error', message: 'URL harus YouTube.' });
 
   try {
-    const info = await ytdl.getInfo(url);
-    const videoDetails = info.videoDetails;
-
-    const audioFormat = ytdl.chooseFormat(info.formats, {
-      quality: 'highestaudio',
-      filter: 'audioonly'
-    });
-
-    if (!audioFormat) return res.status(404).json({ status: 'error', message: 'Format audio tidak ditemukan.' });
+    const data = await getYoutubeCobalt(url, true);
 
     res.json({
       status: 'success',
       result: {
-        title: videoDetails.title,
-        author: videoDetails.author.name,
-        duration: videoDetails.lengthSeconds,
-        thumbnail: videoDetails.thumbnails.at(-1)?.url,
-        audioUrl: audioFormat.url,
-        mimeType: audioFormat.mimeType,
-        bitrate: audioFormat.averageBitrate
+        audioUrl: data.url,
+        filename: data.filename || 'audio.mp3'
       }
     });
   } catch (error) {
     console.error('Error GET /ytmp3:', error);
-    res.status(500).json({ status: 'error', message: 'Gagal mengambil audio YouTube.' });
+    res.status(500).json({ status: 'error', message: error.message || 'Gagal mengambil audio YouTube.' });
   }
 });
 
 // =========================================================
-// 11. ENDPOINT: GET /ytmp4
+// 12. ENDPOINT: GET /ytmp4
 // =========================================================
 app.get('/ytmp4', async (req, res) => {
   const url = req.query.url;
-  const quality = req.query.quality || '720p';
+  const quality = req.query.quality || '720';
 
   if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
 
@@ -210,45 +221,24 @@ app.get('/ytmp4', async (req, res) => {
   if (!isYT) return res.status(400).json({ status: 'error', message: 'URL harus YouTube.' });
 
   try {
-    const info = await ytdl.getInfo(url);
-    const videoDetails = info.videoDetails;
-
-    let videoFormat = ytdl.chooseFormat(info.formats, {
-      filter: format =>
-        format.hasVideo &&
-        format.hasAudio &&
-        format.qualityLabel === quality
-    });
-
-    if (!videoFormat) {
-      videoFormat = ytdl.chooseFormat(info.formats, {
-        filter: format => format.hasVideo && format.hasAudio
-      });
-    }
-
-    if (!videoFormat) return res.status(404).json({ status: 'error', message: 'Format video tidak ditemukan.' });
+    const data = await getYoutubeCobalt(url, false, quality);
 
     res.json({
       status: 'success',
       result: {
-        title: videoDetails.title,
-        author: videoDetails.author.name,
-        duration: videoDetails.lengthSeconds,
-        thumbnail: videoDetails.thumbnails.at(-1)?.url,
-        videoUrl: videoFormat.url,
-        quality: videoFormat.qualityLabel,
-        mimeType: videoFormat.mimeType,
-        fps: videoFormat.fps
+        videoUrl: data.url,
+        filename: data.filename || 'video.mp4',
+        quality: quality + 'p'
       }
     });
   } catch (error) {
     console.error('Error GET /ytmp4:', error);
-    res.status(500).json({ status: 'error', message: 'Gagal mengambil video YouTube.' });
+    res.status(500).json({ status: 'error', message: error.message || 'Gagal mengambil video YouTube.' });
   }
 });
 
 // =========================================================
-// 12. HANDLE ERROR
+// 13. HANDLE ERROR
 // =========================================================
 app.use((err, req, res, next) => {
   console.error(err);
@@ -256,13 +246,13 @@ app.use((err, req, res, next) => {
 });
 
 // =========================================================
-// 13. START SERVER (LOCAL)
+// 14. START SERVER (LOCAL)
 // =========================================================
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => console.log(`Server berjalan di port ${PORT}`));
 }
 
 // =========================================================
-// 14. EXPORT UNTUK VERCEL
+// 15. EXPORT UNTUK VERCEL
 // =========================================================
 export default app;
