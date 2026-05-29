@@ -315,13 +315,29 @@ app.get('/ytmp4', async (req, res) => {
 });
 
 // =========================================================
-// 13. HANDLE ERROR
+// 13. 404 CATCH-ALL — semua route tidak dikenal → 404.html
+// =========================================================
+app.use((req, res, next) => {
+  // Kalau request ke /api atau Accept: application/json → JSON error
+  if (req.path.startsWith('/generate') ||
+      req.path.startsWith('/response') ||
+      req.path.startsWith('/tiktok') ||
+      req.path.startsWith('/ytmp3') ||
+      req.path.startsWith('/ytmp4') ||
+      req.headers.accept?.includes('application/json')) {
+    return res.status(404).json({ status: 'error', message: 'Endpoint tidak ditemukan.' });
+  }
+  // Semua route lain → serve 404.html dengan status 404
+  res.status(404).sendFile(path.join(__dirname, '404.html'));
+});
+
+// =========================================================
+// 13b. ERROR HANDLER
 // =========================================================
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ status: 'error', message: 'Internal Server Error' });
 });
-
 // =========================================================
 // 14. START SERVER (LOCAL)
 // =========================================================
