@@ -56,37 +56,96 @@ async function generateAI(prompt, systemPrompt = '') {
 }
 
 // =========================================================
-// 4. HELPER: YOUTUBE VIA INVIDIOUS API
+// 4. HELPER: YOUTUBE VIA Y2MATE API
 // =========================================================
-const INVIDIOUS_INSTANCES = [
-  'https://invidious.nerdvpn.de',
-  'https://invidious.privacydev.net',
-  'https://inv.nadeko.net',
-  'https://invidious.fdn.fr'
-];
-
 function extractYoutubeId(url) {
   const regex = /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
   const match = url.match(regex);
   return match ? match[1] : null;
 }
 
-async function getYoutubeInfo(videoId) {
-  for (const instance of INVIDIOUS_INSTANCES) {
-    try {
-      const response = await fetch(`${instance}/api/v1/videos/${videoId}`, {
-        signal: AbortSignal.timeout(8000)
-      });
-      if (!response.ok) continue;
-      const data = await response.json();
-      if (data.error) continue;
-      console.log(`[Invidious] Berhasil via ${instance}`);
-      return data;
-    } catch (err) {
-      console.warn(`[Invidious] ${instance} gagal:`, err.message);
+async function getYoutubeLinks(videoId, type = 'mp4') {
+  // Step 1: Analyze
+  const analyzeRes = await fetch('https://www.y2mate.com/mates/analyzeV2/ajax', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    },
+    body: new URLSearchParams({
+      k_query: `https://www.youtube.com/watch?v=${videoId}`,
+      k_page: 'home',
+      hl: 'en',
+      q_auto: '0'
+    }),
+    signal: AbortSignal.timeout(10000)
+  });
+
+  const analyzeData = await analyzeRes.json();
+  if (!analyzeData?.vid) throw new Error('Gagal menganalisis video.');
+
+  const vid = analyzeData.vid;
+
+  // Pilih kualitas: untuk mp3 ambil 128kbps, mp4 ambil 720p atau fallback
+  const links = analyzeData?.links?.[type];
+  if (!links) throw new Error(`Format ${type} tidak tersedia.`);
+
+  // Ambil key berdasarkan preferensi
+  let chosenKey = null;
+  let chosenData = null;
+
+  if (type === 'mp3') {
+    // Prefer 128kbps
+    for (const [key, val] of Object.entries(links)) {
+      if (val?.q?.includes('128') || !chosenKey) {
+        chosenKey = key;
+        chosenData = val;
+      }
+    }
+  } else {
+    // Prefer 720p, fallback ke tertinggi
+    const preferred = ['720p', '480p', '360p', '1080p'];
+    for (const q of preferred) {
+      const found = Object.entries(links).find(([, v]) => v?.q === q);
+      if (found) {
+        chosenKey = found[0];
+        chosenData = found[1];
+        break;
+      }
+    }
+    if (!chosenKey) {
+      const first = Object.entries(links)[0];
+      chosenKey = first[0];
+      chosenData = first[1];
     }
   }
-  throw new Error('Semua instance Invidious tidak tersedia.');
+
+  if (!chosenKey) throw new Error('Tidak ada format yang cocok.');
+
+  // Step 2: Convert
+  const convertRes = await fetch('https://www.y2mate.com/mates/convertV2/index', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    },
+    body: new URLSearchParams({
+      vid,
+      k: chosenKey
+    }),
+    signal: AbortSignal.timeout(15000)
+  });
+
+  const convertData = await convertRes.json();
+  if (!convertData?.dlink) throw new Error('Gagal mendapatkan link download.');
+
+  return {
+    title: analyzeData.title,
+    thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+    quality: chosenData?.q || '',
+    size: chosenData?.size || '',
+    downloadUrl: convertData.dlink
+  };
 }
 
 // =========================================================
@@ -205,23 +264,15 @@ app.get('/ytmp3', async (req, res) => {
   if (!videoId) return res.status(400).json({ status: 'error', message: 'Video ID tidak ditemukan.' });
 
   try {
-    const data = await getYoutubeInfo(videoId);
-
-    const audioFormats = data.adaptiveFormats?.filter(f => f.type?.startsWith('audio/')) || [];
-    const best = audioFormats.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0))[0];
-
-    if (!best) return res.status(404).json({ status: 'error', message: 'Format audio tidak ditemukan.' });
-
+    const result = await getYoutubeLinks(videoId, 'mp3');
     res.json({
       status: 'success',
       result: {
-        title: data.title,
-        author: data.author,
-        duration: data.lengthSeconds,
-        thumbnail: data.videoThumbnails?.[0]?.url,
-        audioUrl: best.url,
-        mimeType: best.type,
-        bitrate: best.bitrate
+        title: result.title,
+        thumbnail: result.thumbnail,
+        quality: result.quality,
+        size: result.size,
+        audioUrl: result.downloadUrl
       }
     });
   } catch (error) {
@@ -235,7 +286,7 @@ app.get('/ytmp3', async (req, res) => {
 // =========================================================
 app.get('/ytmp4', async (req, res) => {
   const url = req.query.url;
-  const quality = req.query.quality || '720';
+  const quality = req.query.quality || '720p';
 
   if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
 
@@ -246,32 +297,15 @@ app.get('/ytmp4', async (req, res) => {
   if (!videoId) return res.status(400).json({ status: 'error', message: 'Video ID tidak ditemukan.' });
 
   try {
-    const data = await getYoutubeInfo(videoId);
-
-    const progressive = data.formatStreams || [];
-    let chosen = progressive.find(f => f.qualityLabel?.startsWith(quality));
-
-    if (!chosen) {
-      chosen = progressive.sort((a, b) => {
-        const qa = parseInt(a.qualityLabel) || 0;
-        const qb = parseInt(b.qualityLabel) || 0;
-        return qb - qa;
-      })[0];
-    }
-
-    if (!chosen) return res.status(404).json({ status: 'error', message: 'Format video tidak ditemukan.' });
-
+    const result = await getYoutubeLinks(videoId, 'mp4');
     res.json({
       status: 'success',
       result: {
-        title: data.title,
-        author: data.author,
-        duration: data.lengthSeconds,
-        thumbnail: data.videoThumbnails?.[0]?.url,
-        videoUrl: chosen.url,
-        quality: chosen.qualityLabel,
-        mimeType: chosen.type,
-        fps: chosen.fps
+        title: result.title,
+        thumbnail: result.thumbnail,
+        quality: result.quality,
+        size: result.size,
+        videoUrl: result.downloadUrl
       }
     });
   } catch (error) {
