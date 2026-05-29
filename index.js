@@ -56,39 +56,37 @@ async function generateAI(prompt, systemPrompt = '') {
 }
 
 // =========================================================
-// 4. HELPER: YOUTUBE VIA COBALT API
+// 4. HELPER: YOUTUBE VIA INVIDIOUS API
 // =========================================================
-async function getYoutubeCobalt(url, isAudioOnly = false, quality = '720') {
-  const body = {
-    url,
-    downloadMode: isAudioOnly ? 'audio' : 'auto',
-    videoQuality: quality,
-    filenameStyle: 'pretty'
-  };
+const INVIDIOUS_INSTANCES = [
+  'https://invidious.nerdvpn.de',
+  'https://invidious.privacydev.net',
+  'https://inv.nadeko.net',
+  'https://invidious.fdn.fr'
+];
 
-  const response = await fetch('https://api.cobalt.tools/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    },
-    body: JSON.stringify(body)
-  });
+function extractYoutubeId(url) {
+  const regex = /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
 
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error('[Cobalt] Response error:', errText);
-    throw new Error(`Cobalt API error: ${response.status}`);
+async function getYoutubeInfo(videoId) {
+  for (const instance of INVIDIOUS_INSTANCES) {
+    try {
+      const response = await fetch(`${instance}/api/v1/videos/${videoId}`, {
+        signal: AbortSignal.timeout(8000)
+      });
+      if (!response.ok) continue;
+      const data = await response.json();
+      if (data.error) continue;
+      console.log(`[Invidious] Berhasil via ${instance}`);
+      return data;
+    } catch (err) {
+      console.warn(`[Invidious] ${instance} gagal:`, err.message);
+    }
   }
-
-  const data = await response.json();
-
-  // status: tunnel / redirect / picker / error
-  if (data.status === 'error') {
-    throw new Error(data.error?.code || 'Cobalt gagal memproses.');
-  }
-
-  return data;
+  throw new Error('Semua instance Invidious tidak tersedia.');
 }
 
 // =========================================================
@@ -203,14 +201,27 @@ app.get('/ytmp3', async (req, res) => {
   const isYT = url.includes('youtube.com') || url.includes('youtu.be');
   if (!isYT) return res.status(400).json({ status: 'error', message: 'URL harus YouTube.' });
 
+  const videoId = extractYoutubeId(url);
+  if (!videoId) return res.status(400).json({ status: 'error', message: 'Video ID tidak ditemukan.' });
+
   try {
-    const data = await getYoutubeCobalt(url, true);
+    const data = await getYoutubeInfo(videoId);
+
+    const audioFormats = data.adaptiveFormats?.filter(f => f.type?.startsWith('audio/')) || [];
+    const best = audioFormats.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0))[0];
+
+    if (!best) return res.status(404).json({ status: 'error', message: 'Format audio tidak ditemukan.' });
 
     res.json({
       status: 'success',
       result: {
-        audioUrl: data.url,
-        filename: data.filename || 'audio.mp3'
+        title: data.title,
+        author: data.author,
+        duration: data.lengthSeconds,
+        thumbnail: data.videoThumbnails?.[0]?.url,
+        audioUrl: best.url,
+        mimeType: best.type,
+        bitrate: best.bitrate
       }
     });
   } catch (error) {
@@ -231,15 +242,36 @@ app.get('/ytmp4', async (req, res) => {
   const isYT = url.includes('youtube.com') || url.includes('youtu.be');
   if (!isYT) return res.status(400).json({ status: 'error', message: 'URL harus YouTube.' });
 
+  const videoId = extractYoutubeId(url);
+  if (!videoId) return res.status(400).json({ status: 'error', message: 'Video ID tidak ditemukan.' });
+
   try {
-    const data = await getYoutubeCobalt(url, false, quality);
+    const data = await getYoutubeInfo(videoId);
+
+    const progressive = data.formatStreams || [];
+    let chosen = progressive.find(f => f.qualityLabel?.startsWith(quality));
+
+    if (!chosen) {
+      chosen = progressive.sort((a, b) => {
+        const qa = parseInt(a.qualityLabel) || 0;
+        const qb = parseInt(b.qualityLabel) || 0;
+        return qb - qa;
+      })[0];
+    }
+
+    if (!chosen) return res.status(404).json({ status: 'error', message: 'Format video tidak ditemukan.' });
 
     res.json({
       status: 'success',
       result: {
-        videoUrl: data.url,
-        filename: data.filename || 'video.mp4',
-        quality: quality + 'p'
+        title: data.title,
+        author: data.author,
+        duration: data.lengthSeconds,
+        thumbnail: data.videoThumbnails?.[0]?.url,
+        videoUrl: chosen.url,
+        quality: chosen.qualityLabel,
+        mimeType: chosen.type,
+        fps: chosen.fps
       }
     });
   } catch (error) {
