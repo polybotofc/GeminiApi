@@ -59,23 +59,34 @@ async function generateAI(prompt, systemPrompt = '') {
 // 4. HELPER: YOUTUBE VIA COBALT API
 // =========================================================
 async function getYoutubeCobalt(url, isAudioOnly = false, quality = '720') {
-  const response = await fetch('https://api.cobalt.tools/api/json', {
+  const body = {
+    url,
+    downloadMode: isAudioOnly ? 'audio' : 'auto',
+    videoQuality: quality,
+    filenameStyle: 'pretty'
+  };
+
+  const response = await fetch('https://api.cobalt.tools/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
-    body: JSON.stringify({
-      url,
-      vQuality: quality,
-      isAudioOnly
-    })
+    body: JSON.stringify(body)
   });
 
-  if (!response.ok) throw new Error(`Cobalt API error: ${response.status}`);
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error('[Cobalt] Response error:', errText);
+    throw new Error(`Cobalt API error: ${response.status}`);
+  }
 
   const data = await response.json();
-  if (data.status === 'error') throw new Error(data.text || 'Cobalt gagal memproses.');
+
+  // status: tunnel / redirect / picker / error
+  if (data.status === 'error') {
+    throw new Error(data.error?.code || 'Cobalt gagal memproses.');
+  }
 
   return data;
 }
