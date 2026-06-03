@@ -5,6 +5,8 @@ import 'dotenv/config';
 import express from 'express';
 import { GoogleGenAI } from '@google/genai';
 import Groq from 'groq-sdk';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -149,18 +151,75 @@ async function getYoutubeLinks(videoId, type = 'mp4') {
 }
 
 // =========================================================
+// 4b. HELPER: INPUT SANITIZATION
+// =========================================================
+function sanitizeParam(value, maxLength) {
+  if (typeof value !== 'string') return '';
+  return value.replace(/[<>"'`${}\\]/g, '').trim().slice(0, maxLength);
+}
+
+function isValidDomainUrl(input, expectedDomain) {
+  try {
+    const parsed = new URL(input);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false;
+    return parsed.hostname === expectedDomain || parsed.hostname.endsWith('.' + expectedDomain);
+  } catch {
+    return false;
+  }
+}
+
+// =========================================================
 // 5. MIDDLEWARE DASAR
 // =========================================================
+app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 app.disable('x-powered-by');
 
 // =========================================================
+// 5b. RATE LIMITING
+// =========================================================
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { status: 'error', message: 'Terlalu banyak permintaan, coba lagi nanti.' }
+});
+app.use('/generate', apiLimiter);
+app.use('/response', apiLimiter);
+app.use('/tiktok', apiLimiter);
+app.use('/ytmp3', apiLimiter);
+app.use('/ytmp4', apiLimiter);
+
+// =========================================================
+// 5c. API KEY AUTHENTICATION
+// =========================================================
+const API_KEYS = new Set(
+  (process.env.API_KEYS || '').split(',').map(k => k.trim()).filter(Boolean)
+);
+
+function requireApiKey(req, res, next) {
+  if (API_KEYS.size === 0) return next();
+
+  const key = req.query.apikey || req.headers['x-api-key'];
+  if (!key || !API_KEYS.has(key)) {
+    return res.status(401).json({ status: 'error', message: 'API key tidak valid atau tidak diberikan.' });
+  }
+  next();
+}
+
+// =========================================================
 // 6. CORS
 // =========================================================
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean);
+
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+  }
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, X-API-Key');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
@@ -168,7 +227,8 @@ app.use((req, res, next) => {
 // =========================================================
 // 7. SERVE DASHBOARD HTML
 // =========================================================
-app.use(express.static(path.join(__dirname, '.')));
+const publicDir = path.join(__dirname, 'public');
+app.use(express.static(publicDir));
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -176,7 +236,7 @@ app.get('/', (req, res) => {
 // =========================================================
 // 8. ENDPOINT: POST /generate
 // =========================================================
-app.post('/generate', async (req, res) => {
+app.post('/generate', requireApiKey, async (req, res) => {
   const { prompt } = req.body;
 
   if (!prompt) return res.status(400).json({ status: 'error', message: 'Parameter "prompt" diperlukan.' });
@@ -194,11 +254,11 @@ app.post('/generate', async (req, res) => {
 // =========================================================
 // 9. ENDPOINT: GET /response
 // =========================================================
-app.get('/response', async (req, res) => {
+app.get('/response', requireApiKey, async (req, res) => {
   const prompt = req.query.message;
-  const userName = req.query.username || 'Pengguna';
-  const customName = req.query.name || 'Poly';
-  const customDesc = req.query.desc || 'asisten AI yang ramah, pintar, dan membantu';
+  const userName = sanitizeParam(req.query.username, 50) || 'Pengguna';
+  const customName = sanitizeParam(req.query.name, 50) || 'Poly';
+  const customDesc = sanitizeParam(req.query.desc, 200) || 'asisten AI yang ramah, pintar, dan membantu';
 
   if (!prompt) return res.status(400).json({ status: 'error', message: 'Parameter "message" diperlukan.' });
   if (prompt.length > 2000) return res.status(400).json({ status: 'error', message: 'Pesan terlalu panjang.' });
@@ -219,11 +279,11 @@ Jawab dengan ramah dan singkat.`;
 // =========================================================
 // 10. ENDPOINT: GET /tiktok
 // =========================================================
-app.get('/tiktok', async (req, res) => {
+app.get('/tiktok', requireApiKey, async (req, res) => {
   const url = req.query.url;
 
   if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
-  if (!url.includes('tiktok.com')) return res.status(400).json({ status: 'error', message: 'URL harus TikTok' });
+  if (!isValidDomainUrl(url, 'tiktok.com')) return res.status(400).json({ status: 'error', message: 'URL harus TikTok' });
 
   try {
     const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
@@ -252,12 +312,12 @@ app.get('/tiktok', async (req, res) => {
 // =========================================================
 // 11. ENDPOINT: GET /ytmp3
 // =========================================================
-app.get('/ytmp3', async (req, res) => {
+app.get('/ytmp3', requireApiKey, async (req, res) => {
   const url = req.query.url;
 
   if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
 
-  const isYT = url.includes('youtube.com') || url.includes('youtu.be');
+  const isYT = isValidDomainUrl(url, 'youtube.com') || isValidDomainUrl(url, 'youtu.be');
   if (!isYT) return res.status(400).json({ status: 'error', message: 'URL harus YouTube.' });
 
   const videoId = extractYoutubeId(url);
@@ -277,20 +337,20 @@ app.get('/ytmp3', async (req, res) => {
     });
   } catch (error) {
     console.error('Error GET /ytmp3:', error);
-    res.status(500).json({ status: 'error', message: error.message || 'Gagal mengambil audio YouTube.' });
+    res.status(500).json({ status: 'error', message: 'Gagal mengambil audio YouTube.' });
   }
 });
 
 // =========================================================
 // 12. ENDPOINT: GET /ytmp4
 // =========================================================
-app.get('/ytmp4', async (req, res) => {
+app.get('/ytmp4', requireApiKey, async (req, res) => {
   const url = req.query.url;
   const quality = req.query.quality || '720p';
 
   if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
 
-  const isYT = url.includes('youtube.com') || url.includes('youtu.be');
+  const isYT = isValidDomainUrl(url, 'youtube.com') || isValidDomainUrl(url, 'youtu.be');
   if (!isYT) return res.status(400).json({ status: 'error', message: 'URL harus YouTube.' });
 
   const videoId = extractYoutubeId(url);
@@ -310,7 +370,7 @@ app.get('/ytmp4', async (req, res) => {
     });
   } catch (error) {
     console.error('Error GET /ytmp4:', error);
-    res.status(500).json({ status: 'error', message: error.message || 'Gagal mengambil video YouTube.' });
+    res.status(500).json({ status: 'error', message: 'Gagal mengambil video YouTube.' });
   }
 });
 
