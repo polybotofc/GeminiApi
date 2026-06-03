@@ -7,6 +7,9 @@ import { GoogleGenAI } from '@google/genai';
 import Groq from 'groq-sdk';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { sendSuccess, sendError } from './utils/response.js';
+import { asyncHandler } from './utils/asyncHandler.js';
+import { requireParam, maxLength, validateYouTubeUrl } from './utils/validators.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,12 +61,6 @@ async function generateAI(prompt, systemPrompt = '') {
 // =========================================================
 // 4. HELPER: YOUTUBE VIA Y2MATE API
 // =========================================================
-function extractYoutubeId(url) {
-  const regex = /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-  const match = url.match(regex);
-  return match ? match[1] : null;
-}
-
 async function getYoutubeLinks(videoId, type = 'mp4') {
   // Step 1: Analyze
   const analyzeRes = await fetch('https://www.y2mate.com/mates/analyzeV2/ajax', {
@@ -176,64 +173,49 @@ app.get('/', (req, res) => {
 // =========================================================
 // 8. ENDPOINT: POST /generate
 // =========================================================
-app.post('/generate', async (req, res) => {
-  const { prompt } = req.body;
-
-  if (!prompt) return res.status(400).json({ status: 'error', message: 'Parameter "prompt" diperlukan.' });
-  if (prompt.length > 2000) return res.status(400).json({ status: 'error', message: 'Prompt terlalu panjang.' });
-
-  try {
-    const text = await generateAI(prompt);
-    res.json({ status: 'success', generated_text: text });
-  } catch (error) {
-    console.error('Error POST /generate:', error);
-    res.status(500).json({ status: 'error', message: 'Gagal memproses AI' });
-  }
-});
+app.post('/generate',
+  requireParam('prompt', 'body'),
+  maxLength('prompt', 2000, 'body'),
+  asyncHandler('POST /generate', async (req, res) => {
+    const text = await generateAI(req.body.prompt);
+    sendSuccess(res, { generated_text: text });
+  })
+);
 
 // =========================================================
 // 9. ENDPOINT: GET /response
 // =========================================================
-app.get('/response', async (req, res) => {
-  const prompt = req.query.message;
-  const userName = req.query.username || 'Pengguna';
-  const customName = req.query.name || 'Poly';
-  const customDesc = req.query.desc || 'asisten AI yang ramah, pintar, dan membantu';
+app.get('/response',
+  requireParam('message'),
+  maxLength('message', 2000),
+  asyncHandler('GET /response', async (req, res) => {
+    const { message, username = 'Pengguna', name = 'Poly', desc = 'asisten AI yang ramah, pintar, dan membantu' } = req.query;
 
-  if (!prompt) return res.status(400).json({ status: 'error', message: 'Parameter "message" diperlukan.' });
-  if (prompt.length > 2000) return res.status(400).json({ status: 'error', message: 'Pesan terlalu panjang.' });
-
-  const systemPrompt = `Anda adalah ${customName}, seorang ${customDesc}.
-Anda sedang berbicara dengan ${userName}.
+    const systemPrompt = `Anda adalah ${name}, seorang ${desc}.
+Anda sedang berbicara dengan ${username}.
 Jawab dengan ramah dan singkat.`;
 
-  try {
-    const text = await generateAI(prompt, systemPrompt);
-    res.json({ status: 'success', generated_text: text });
-  } catch (error) {
-    console.error('Error GET /response:', error);
-    res.status(500).json({ status: 'error', message: 'Gagal memproses AI' });
-  }
-});
+    const text = await generateAI(message, systemPrompt);
+    sendSuccess(res, { generated_text: text });
+  })
+);
 
 // =========================================================
 // 10. ENDPOINT: GET /tiktok
 // =========================================================
-app.get('/tiktok', async (req, res) => {
-  const url = req.query.url;
+app.get('/tiktok',
+  requireParam('url'),
+  asyncHandler('GET /tiktok', async (req, res) => {
+    const { url } = req.query;
+    if (!url.includes('tiktok.com')) return sendError(res, 400, 'URL harus TikTok');
 
-  if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
-  if (!url.includes('tiktok.com')) return res.status(400).json({ status: 'error', message: 'URL harus TikTok' });
-
-  try {
     const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
     const response = await fetch(apiUrl);
     const data = await response.json();
 
-    if (data.code !== 0) return res.status(404).json({ status: 'error', message: 'Video tidak ditemukan' });
+    if (data.code !== 0) return sendError(res, 404, 'Video tidak ditemukan');
 
-    res.json({
-      status: 'success',
+    sendSuccess(res, {
       result: {
         title: data.data.title,
         author: data.data.author.nickname,
@@ -243,30 +225,17 @@ app.get('/tiktok', async (req, res) => {
         thumbnail: data.data.cover
       }
     });
-  } catch (error) {
-    console.error('Error GET /tiktok:', error);
-    res.status(500).json({ status: 'error', message: 'Gagal mengambil video' });
-  }
-});
+  })
+);
 
 // =========================================================
 // 11. ENDPOINT: GET /ytmp3
 // =========================================================
-app.get('/ytmp3', async (req, res) => {
-  const url = req.query.url;
-
-  if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
-
-  const isYT = url.includes('youtube.com') || url.includes('youtu.be');
-  if (!isYT) return res.status(400).json({ status: 'error', message: 'URL harus YouTube.' });
-
-  const videoId = extractYoutubeId(url);
-  if (!videoId) return res.status(400).json({ status: 'error', message: 'Video ID tidak ditemukan.' });
-
-  try {
-    const result = await getYoutubeLinks(videoId, 'mp3');
-    res.json({
-      status: 'success',
+app.get('/ytmp3',
+  validateYouTubeUrl(),
+  asyncHandler('GET /ytmp3', async (req, res) => {
+    const result = await getYoutubeLinks(req.videoId, 'mp3');
+    sendSuccess(res, {
       result: {
         title: result.title,
         thumbnail: result.thumbnail,
@@ -275,31 +244,17 @@ app.get('/ytmp3', async (req, res) => {
         audioUrl: result.downloadUrl
       }
     });
-  } catch (error) {
-    console.error('Error GET /ytmp3:', error);
-    res.status(500).json({ status: 'error', message: error.message || 'Gagal mengambil audio YouTube.' });
-  }
-});
+  })
+);
 
 // =========================================================
 // 12. ENDPOINT: GET /ytmp4
 // =========================================================
-app.get('/ytmp4', async (req, res) => {
-  const url = req.query.url;
-  const quality = req.query.quality || '720p';
-
-  if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
-
-  const isYT = url.includes('youtube.com') || url.includes('youtu.be');
-  if (!isYT) return res.status(400).json({ status: 'error', message: 'URL harus YouTube.' });
-
-  const videoId = extractYoutubeId(url);
-  if (!videoId) return res.status(400).json({ status: 'error', message: 'Video ID tidak ditemukan.' });
-
-  try {
-    const result = await getYoutubeLinks(videoId, 'mp4');
-    res.json({
-      status: 'success',
+app.get('/ytmp4',
+  validateYouTubeUrl(),
+  asyncHandler('GET /ytmp4', async (req, res) => {
+    const result = await getYoutubeLinks(req.videoId, 'mp4');
+    sendSuccess(res, {
       result: {
         title: result.title,
         thumbnail: result.thumbnail,
@@ -308,35 +263,28 @@ app.get('/ytmp4', async (req, res) => {
         videoUrl: result.downloadUrl
       }
     });
-  } catch (error) {
-    console.error('Error GET /ytmp4:', error);
-    res.status(500).json({ status: 'error', message: error.message || 'Gagal mengambil video YouTube.' });
-  }
-});
+  })
+);
 
 // =========================================================
 // 13. 404 CATCH-ALL — semua route tidak dikenal → 404.html
 // =========================================================
+const API_PATHS = ['/generate', '/response', '/tiktok', '/ytmp3', '/ytmp4'];
+
 app.use((req, res, next) => {
-  // Kalau request ke /api atau Accept: application/json → JSON error
-  if (req.path.startsWith('/generate') ||
-      req.path.startsWith('/response') ||
-      req.path.startsWith('/tiktok') ||
-      req.path.startsWith('/ytmp3') ||
-      req.path.startsWith('/ytmp4') ||
-      req.headers.accept?.includes('application/json')) {
-    return res.status(404).json({ status: 'error', message: 'Endpoint tidak ditemukan.' });
-  }
-  // Semua route lain → serve 404.html dengan status 404
+  const isApiRequest = API_PATHS.some(p => req.path.startsWith(p)) ||
+    req.headers.accept?.includes('application/json');
+
+  if (isApiRequest) return sendError(res, 404, 'Endpoint tidak ditemukan.');
   res.status(404).sendFile(path.join(__dirname, '404.html'));
 });
 
 // =========================================================
 // 13b. ERROR HANDLER
 // =========================================================
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error(err);
-  res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  sendError(res, 500, 'Internal Server Error');
 });
 // =========================================================
 // 14. START SERVER (LOCAL)
