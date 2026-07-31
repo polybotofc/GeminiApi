@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CAI Dispatch — Character.AI Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#11162a;
+    --panel:#171d38;
+    --panel-2:#1d2444;
+    --line:#2a3260;
+    --cream:#ece6d9;
+    --cream-dim:#a9a6ab;
+    --amber:#e8a33d;
+    --amber-dim:#7a5a26;
+    --teal:#57d6c4;
+    --red:#e8683d;
+    --radius:3px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:
+      radial-gradient(ellipse at top left, rgba(232,163,61,0.06), transparent 45%),
+      var(--ink);
+    color:var(--cream);
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    line-height:1.5;
+    min-height:100vh;
+  }
+  ::selection{ background:var(--amber-dim); color:var(--cream); }
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 22px;
+    border-bottom:1px solid var(--line);
+    background:rgba(17,22,42,0.85);
+    position:sticky; top:0; z-index:20;
+    backdrop-filter:blur(6px);
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand-mark{
+    width:26px; height:26px; border:1px solid var(--amber);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+  }
+  .brand-mark::after{
+    content:''; width:6px; height:6px; border-radius:50%;
+    background:var(--amber);
+    box-shadow:0 0 8px 2px rgba(232,163,61,0.7);
+    animation:pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  .brand h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:19px;
+    letter-spacing:0.2px;
+    margin:0;
+  }
+  .brand span{
+    display:block;
+    font-size:10px;
+    letter-spacing:2.5px;
+    text-transform:uppercase;
+    color:var(--cream-dim);
+    margin-top:1px;
+  }
+  .base-url{ display:flex; align-items:center; gap:8px; }
+  .base-url label{ font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--cream-dim); }
+  .base-url input{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--cream);
+    padding:7px 10px;
+    border-radius:var(--radius);
+    font-family:inherit;
+    font-size:12px;
+    width:220px;
+  }
+  .base-url input:focus{ outline:1px solid var(--amber); border-color:var(--amber); }
+
+  /* ---------- layout ---------- */
+  .layout{
+    display:grid;
+    grid-template-columns:340px 1fr;
+    gap:1px;
+    background:var(--line);
+    min-height:calc(100vh - 57px);
+  }
+  @media (max-width:840px){
+    .layout{ grid-template-columns:1fr; }
+  }
+  .panel{ background:var(--panel); padding:20px; }
+  .rail{ display:flex; flex-direction:column; gap:22px; }
+
+  .field-block h2{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    color:var(--cream-dim);
+    margin:0 0 10px 0;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .field-block h2 em{
+    font-style:normal;
+    color:var(--amber);
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+  }
+  .row{ display:flex; gap:8px; margin-bottom:8px; }
+  input[type=text], textarea{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--cream);
+    padding:9px 10px;
+    border-radius:var(--radius);
+    font-family:inherit;
+    font-size:12.5px;
+    resize:none;
+  }
+  input[type=text]:focus, textarea:focus{ outline:none; border-color:var(--amber); }
+  label.chk{ display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--cream-dim); margin:6px 0 10px; cursor:pointer; }
+  label.chk input{ accent-color:var(--amber); }
+
+  button{
+    font-family:inherit;
+    font-size:11.5px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    padding:9px 14px;
+    border-radius:var(--radius);
+    border:1px solid var(--amber-dim);
+    background:transparent;
+    color:var(--amber);
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+    white-space:nowrap;
+  }
+  button:hover{ background:var(--amber); color:var(--ink); border-color:var(--amber); }
+  button.ghost{ border-color:var(--line); color:var(--cream-dim); }
+  button.ghost:hover{ background:var(--panel-2); color:var(--cream); border-color:var(--cream-dim); }
+  button.danger{ border-color:#5a2c1c; color:var(--red); }
+  button.danger:hover{ background:var(--red); color:var(--ink); border-color:var(--red); }
+  button:disabled{ opacity:.4; cursor:not-allowed; }
+  button:disabled:hover{ background:transparent; color:var(--amber); }
+
+  /* ---------- search results ---------- */
+  .results{ display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto; margin-top:4px; }
+  .result-card{
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:9px 10px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .result-card:hover{ border-color:var(--teal); background:var(--panel-2); }
+  .result-card.picked{ border-color:var(--amber); background:rgba(232,163,61,0.08); }
+  .result-card .rc-name{ font-size:12.5px; color:var(--cream); font-weight:600; }
+  .result-card .rc-id{ font-size:10.5px; color:var(--cream-dim); margin-top:2px; word-break:break-all; }
+  .empty-note{ font-size:11.5px; color:var(--cream-dim); font-style:italic; padding:8px 2px; }
+
+  /* ---------- connection ticket ---------- */
+  .ticket{
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+    padding:12px;
+    font-size:11.5px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .ticket .kv{ display:flex; justify-content:space-between; gap:10px; }
+  .ticket .kv b{ color:var(--cream-dim); font-weight:500; }
+  .ticket .kv span{ color:var(--teal); word-break:break-all; text-align:right; }
+  .status-line{
+    display:flex; align-items:center; gap:8px;
+    font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--cream-dim);
+  }
+  .dot{ width:7px; height:7px; border-radius:50%; background:#5a4830; flex-shrink:0; }
+  .dot.on{ background:var(--teal); box-shadow:0 0 7px 1px rgba(87,214,196,.7); }
+
+  /* ---------- main chat column ---------- */
+  .main{ display:flex; flex-direction:column; height:calc(100vh - 57px); }
+  .transcript-head{
+    padding:16px 24px;
+    border-bottom:1px solid var(--line);
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .transcript-head h2{
+    font-family:'Fraunces', serif; font-weight:500; font-size:15px; margin:0;
+  }
+  .transcript-head .sub{ font-size:11px; color:var(--cream-dim); margin-top:2px; }
+  .transcript{
+    flex:1;
+    overflow-y:auto;
+    padding:24px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .msg{ max-width:72%; animation:rise .25s ease; }
+  @keyframes rise{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:translateY(0);} }
+  .msg .bubble{
+    padding:10px 13px;
+    border-radius:var(--radius);
+    font-size:13px;
+    line-height:1.55;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+  .msg.user{ align-self:flex-end; }
+  .msg.user .bubble{ background:var(--amber); color:var(--ink); border-top-right-radius:0; }
+  .msg.char{ align-self:flex-start; }
+  .msg.char .bubble{ background:var(--panel-2); border:1px solid var(--line); border-top-left-radius:0; }
+  .msg.sys{ align-self:center; max-width:90%; }
+  .msg.sys .bubble{ background:transparent; border:1px dashed var(--line); color:var(--cream-dim); font-size:11.5px; text-align:center; }
+  .msg .meta{ font-size:9.5px; letter-spacing:1px; text-transform:uppercase; color:var(--cream-dim); margin-top:4px; }
+  .msg.user .meta{ text-align:right; }
+
+  .composer{
+    border-top:1px solid var(--line);
+    padding:16px 24px 20px;
+    display:flex;
+    gap:10px;
+    align-items:flex-end;
+  }
+  .composer textarea{ flex:1; min-height:42px; max-height:140px; }
+  .placeholder-state{
+    flex:1; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px;
+    color:var(--cream-dim); text-align:center; padding:40px;
+  }
+  .placeholder-state .glyph{ font-size:30px; color:var(--amber-dim); }
+  .placeholder-state h3{ font-family:'Fraunces', serif; font-weight:500; color:var(--cream); font-size:16px; margin:0; }
+  .placeholder-state p{ margin:0; font-size:12px; max-width:340px; }
+
+  .raw-toggle{ font-size:10.5px; color:var(--cream-dim); cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+  .raw-json{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius);
+    padding:10px; font-size:10.5px; color:var(--teal); max-height:160px; overflow:auto; margin-top:8px; display:none; white-space:pre-wrap;
+  }
+  .raw-json.show{ display:block; }
+
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  ::-webkit-scrollbar-thumb{ background:var(--line); border-radius:4px; }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div>
+        <h1>CAI Dispatch</h1>
+        <span>Character.AI test console</span>
+      </div>
+    </div>
+    <div class="base-url">
+      <label for="baseUrl">Base URL</label>
+      <input type="text" id="baseUrl" placeholder="https://domain-kamu.com" />
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT RAIL -->
+    <div class="panel rail">
+
+      <div class="field-block">
+        <h2>01 · Cari karakter</h2>
+        <div class="row">
+          <input type="text" id="searchQ" placeholder="mis. Naruto, asisten belajar..." />
+          <button id="btnSearch">Cari</button>
+        </div>
+        <div class="results" id="searchResults">
+          <div class="empty-note">Belum ada pencarian.</div>
+        </div>
+      </div>
+
+      <div class="field-block">
+        <h2>02 · Session</h2>
+        <div class="row">
+          <input type="text" id="charIdInput" placeholder="Character ID" />
+        </div>
+        <label class="chk">
+          <input type="checkbox" id="newConvo" />
+          Mulai obrolan baru (newConversation)
+        </label>
+        <div class="row">
+          <button id="btnCreateSession">Buat session</button>
+          <button class="ghost" id="btnHistory" disabled>Riwayat</button>
+        </div>
+
+        <div class="ticket" id="ticket" style="margin-top:12px;">
+          <div class="status-line"><span class="dot" id="statusDot"></span><span id="statusText">Belum terhubung</span></div>
+          <div class="kv"><b>session_id</b><span id="tSession">—</span></div>
+          <div class="kv"><b>char_id</b><span id="tChar">—</span></div>
+          <div class="kv"><b>chat_id</b><span id="tChat">—</span></div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button class="danger" id="btnDeleteSession" disabled>Hapus session</button>
+        </div>
+      </div>
+
+      <div class="field-block">
+        <span class="raw-toggle" id="rawToggle">tampilkan respons mentah (JSON)</span>
+        <div class="raw-json" id="rawJson">—</div>
+      </div>
+
+    </div>
+
+    <!-- MAIN -->
+    <div class="panel main" style="padding:0;">
+      <div class="transcript-head">
+        <div>
+          <h2 id="headTitle">Belum ada karakter terhubung</h2>
+          <div class="sub" id="headSub">Cari lalu buat session di panel kiri untuk mulai ngobrol.</div>
+        </div>
+      </div>
+
+      <div class="transcript" id="transcript">
+        <div class="placeholder-state">
+          <div class="glyph">◈</div>
+          <h3>Belum ada koneksi aktif</h3>
+          <p>Cari karakter, pilih dari hasil pencarian, lalu tekan "Buat session" untuk mulai chat lewat endpoint /cai.</p>
+        </div>
+      </div>
+
+      <div class="composer">
+        <textarea id="msgInput" placeholder="Ketik pesan untuk karakter..." rows="1" disabled></textarea>
+        <button id="btnSend" disabled>Kirim</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  const state = {
+    sessionId: null,
+    charId: null,
+    chatId: null,
+    charName: null
+  };
+
+  // ---------- base url persistence ----------
+  const savedBase = localStorageSafeGet('cai_base_url');
+  $('baseUrl').value = savedBase || window.location.origin;
+  $('baseUrl').addEventListener('change', () => {
+    localStorageSafeSet('cai_base_url', $('baseUrl').value.trim());
+  });
+  function localStorageSafeGet(k){ try { return null; } catch(e){ return null; } }
+  function localStorageSafeSet(k,v){ /* no-op: browser storage disabled in this environment */ }
+
+  function apiBase(){
+    return ($('baseUrl').value || '').trim().replace(/\/+$/,'');
+  }
+
+  function rawShow(obj){
+    $('rawJson').textContent = JSON.stringify(obj, null, 2);
+  }
+  $('rawToggle').addEventListener('click', () => {
+    $('rawJson').classList.toggle('show');
+    $('rawToggle').textContent = $('rawJson').classList.contains('show')
+      ? 'sembunyikan respons mentah'
+      : 'tampilkan respons mentah (JSON)';
+  });
+
+  async function apiFetch(path, options = {}) {
+    const url = apiBase() + path;
+    const res = await fetch(url, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options
+    });
+    let data;
+    try { data = await res.json(); } catch (e) { data = { status: 'error', message: 'Respons bukan JSON valid.' }; }
+    rawShow(data);
+    if (!res.ok || data.status === 'error') {
+      throw new Error(data.message || `Request gagal (${res.status})`);
+    }
+    return data;
+  }
+
+  function addSysMsg(text){
+    const t = $('transcript');
+    if (t.querySelector('.placeholder-state')) t.innerHTML = '';
+    const el = document.createElement('div');
+    el.className = 'msg sys';
+    el.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>`;
+    t.appendChild(el);
+    t.scrollTop = t.scrollHeight;
+  }
+
+  function addChatMsg(role, text){
+    const t = $('transcript');
+    if (t.querySelector('.placeholder-state')) t.innerHTML = '';
+    const el = document.createElement('div');
+    el.className = 'msg ' + (role === 'user' ? 'user' : 'char');
+    const label = role === 'user' ? 'Kamu' : (state.charName || 'Karakter');
+    el.innerHTML = `<div class="bubble">${escapeHtml(text)}</div><div class="meta">${label}</div>`;
+    t.appendChild(el);
+    t.scrollTop = t.scrollHeight;
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function setConnected(connected){
+    $('statusDot').classList.toggle('on', connected);
+    $('statusText').textContent = connected ? 'Terhubung' : 'Belum terhubung';
+    $('msgInput').disabled = !connected;
+    $('btnSend').disabled = !connected;
+    $('btnHistory').disabled = !connected;
+    $('btnDeleteSession').disabled = !connected;
+  }
+
+  // ---------- 1. search ----------
+  $('btnSearch').addEventListener('click', doSearch);
+  $('searchQ').addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
+
+  async function doSearch(){
+    const q = $('searchQ').value.trim();
+    if (!q) return;
+    const box = $('searchResults');
+    box.innerHTML = '<div class="empty-note">Mencari...</div>';
+    try {
+      const data = await apiFetch(`/cai/search?q=${encodeURIComponent(q)}`);
+      const list = data.result?.characters || data.result || [];
+      const arr = Array.isArray(list) ? list : (list?.results || []);
+      if (!arr.length) {
+        box.innerHTML = '<div class="empty-note">Tidak ada karakter ditemukan.</div>';
+        return;
+      }
+      box.innerHTML = '';
+      arr.slice(0, 20).forEach(char => {
+        const id = char.character_id || char.external_id || char.id || '';
+        const name = char.title || char.name || char.participant__name || 'Tanpa nama';
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        card.innerHTML = `<div class="rc-name">${escapeHtml(name)}</div><div class="rc-id">${escapeHtml(id)}</div>`;
+        card.addEventListener('click', () => {
+          document.querySelectorAll('.result-card').forEach(c => c.classList.remove('picked'));
+          card.classList.add('picked');
+          $('charIdInput').value = id;
+          state.charName = name;
+        });
+        box.appendChild(card);
+      });
+    } catch (err) {
+      box.innerHTML = `<div class="empty-note">Gagal mencari: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  // ---------- 2. create session ----------
+  $('btnCreateSession').addEventListener('click', async () => {
+    const charId = $('charIdInput').value.trim();
+    if (!charId) { addSysMsg('Isi Character ID atau pilih dari hasil pencarian dulu.'); return; }
+
+    $('btnCreateSession').disabled = true;
+    $('btnCreateSession').textContent = 'Menghubungkan...';
+    try {
+      const data = await apiFetch('/cai/session', {
+        method: 'POST',
+        body: JSON.stringify({ charId, newConversation: $('newConvo').checked })
+      });
+      const r = data.result;
+      state.sessionId = r.sessionId;
+      state.charId = r.charId;
+      state.chatId = r.chatId;
+
+      $('tSession').textContent = r.sessionId;
+      $('tChar').textContent = r.charId;
+      $('tChat').textContent = r.chatId;
+
+      $('headTitle').textContent = state.charName ? `Ngobrol dengan ${state.charName}` : `Terhubung ke karakter ${r.charId}`;
+      $('headSub').textContent = `session ${r.sessionId}`;
+
+      setConnected(true);
+      $('transcript').innerHTML = '';
+      addSysMsg('Session dibuat. Terhubung ke karakter.');
+      if (r.greeting) addChatMsg('char', r.greeting);
+    } catch (err) {
+      addSysMsg('Gagal membuat session: ' + err.message);
+    } finally {
+      $('btnCreateSession').disabled = false;
+      $('btnCreateSession').textContent = 'Buat session';
+    }
+  });
+
+  // ---------- 3. chat ----------
+  $('btnSend').addEventListener('click', sendMsg);
+  $('msgInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+  });
+  $('msgInput').addEventListener('input', function(){
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 140) + 'px';
+  });
+
+  async function sendMsg(){
+    const text = $('msgInput').value.trim();
+    if (!text || !state.sessionId) return;
+    addChatMsg('user', text);
+    $('msgInput').value = '';
+    $('msgInput').style.height = 'auto';
+    $('btnSend').disabled = true;
+
+    try {
+      const data = await apiFetch(`/cai/session/${state.sessionId}/chat`, {
+        method: 'POST',
+        body: JSON.stringify({ message: text })
+      });
+      addChatMsg('char', data.result.reply);
+    } catch (err) {
+      addSysMsg('Gagal mengirim pesan: ' + err.message);
+    } finally {
+      $('btnSend').disabled = false;
+    }
+  }
+
+  // ---------- 4. history ----------
+  $('btnHistory').addEventListener('click', async () => {
+    if (!state.sessionId) return;
+    try {
+      const data = await apiFetch(`/cai/session/${state.sessionId}/history`);
+      addSysMsg('Riwayat chat diambil, cek panel "respons mentah (JSON)" di kiri bawah untuk detail lengkap.');
+      $('rawJson').classList.add('show');
+      $('rawToggle').textContent = 'sembunyikan respons mentah';
+    } catch (err) {
+      addSysMsg('Gagal mengambil riwayat: ' + err.message);
+    }
+  });
+
+  // ---------- 5. delete session ----------
+  $('btnDeleteSession').addEventListener('click', async () => {
+    if (!state.sessionId) return;
+    try {
+      await apiFetch(`/cai/session/${state.sessionId}`, { method: 'DELETE' });
+      addSysMsg('Session dihapus.');
+      state.sessionId = null; state.charId = null; state.chatId = null;
+      $('tSession').textContent = '—'; $('tChar').textContent = '—'; $('tChat').textContent = '—';
+      $('headTitle').textContent = 'Belum ada karakter terhubung';
+      $('headSub').textContent = 'Cari lalu buat session di panel kiri untuk mulai ngobrol.';
+      setConnected(false);
+    } catch (err) {
+      addSysMsg('Gagal menghapus session: ' + err.message);
+    }
+  });
+</script>
+</body>
+</html>
