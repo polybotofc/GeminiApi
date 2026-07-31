@@ -1,1634 +1,898 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SELORA API — Powerful Modern API Platform</title>
-  <meta name="description" content="SELORA API menyediakan layanan API modern dengan performa tinggi, dokumentasi lengkap, dan integrasi mudah untuk developer." />
-  <meta name="keywords" content="SELORA API, API platform, AI Chat API, TikTok Downloader API, developer tools, REST API" />
-  <meta name="author" content="SELORA API" />
-  <meta name="theme-color" content="#0a0a0f" />
-  <meta property="og:title" content="SELORA API — Powerful Modern API Platform" />
-  <meta property="og:description" content="Fast, Reliable, and Modern API Platform for Developers." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://seloraapi.com" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="SELORA API — Powerful Modern API Platform" />
-  <meta name="twitter:description" content="Fast, Reliable, and Modern API Platform for Developers." />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%236366f1'>S</text></svg>" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700&family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hikaru REST API — Console</title>
+<meta name="description" content="Konsol referensi Hikaru REST API. Jelajahi endpoint, baca dokumentasi, dan uji langsung dari browser." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 <style>
-/* ============================================================
-   SELORA API — Embedded CSS
-   ============================================================ */
-:root {
-  --bg: #080810;
-  --bg2: #0d0d18;
-  --bg3: #111122;
-  --surface: rgba(255,255,255,0.04);
-  --surface2: rgba(255,255,255,0.07);
-  --border: rgba(255,255,255,0.08);
-  --primary: #6366f1;
-  --primary-light: #818cf8;
-  --primary-dark: #4f46e5;
-  --accent: #06b6d4;
-  --accent2: #a855f7;
-  --green: #22c55e;
-  --red: #ef4444;
-  --text: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
-  --font-display: 'Syne', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
-  --font-mono: 'Space Mono', monospace;
-  --radius: 16px;
-  --radius-sm: 10px;
-  --radius-lg: 24px;
-  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* ==========================================================
+   HIKARU REST API — CONSOLE — design tokens
+   Palette   : blueprint paper (#EEF2F5) + navy ink (#17222E)
+               + signal teal (#0F9D9D) + amber (#E08A2E)
+   Type      : IBM Plex Mono (display/labels) + IBM Plex Sans (body)
+   Signature : left "bus line" wiring the endpoint tree together,
+               and a live oscilloscope trace that fires on request
+   ========================================================== */
+:root{
+  --paper:#EEF2F5; --paper2:#E4EAEF; --card:#FFFFFF;
+  --ink:#17222E; --ink-dim:#52616F; --ink-faint:#8B98A4;
+  --line:#C9D3DA; --line-strong:#AEBAC3;
+  --teal:#0F9D9D; --teal-dim:#0F9D9D22;
+  --amber:#DB8B2E; --amber-dim:#DB8B2E1f;
+  --red:#D64545; --red-dim:#D645451c;
+  --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+  --radius:10px;
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body { font-family: var(--font-body); background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
-a { color: inherit; text-decoration: none; }
-ul { list-style: none; }
-button { cursor: pointer; font-family: inherit; border: none; outline: none; background: none; }
-input, textarea { font-family: inherit; outline: none; border: none; }
-
-/* CURSOR */
-.cursor-glow { position: fixed; width: 400px; height: 400px; background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%); border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 0; will-change: left,top; }
-
-/* SCROLL PROGRESS */
-.scroll-progress { position: fixed; top: 0; left: 0; height: 2px; width: 0%; background: linear-gradient(90deg, var(--primary), var(--accent), var(--accent2)); z-index: 9999; box-shadow: 0 0 8px var(--primary); transition: width 0.05s linear; }
-
-/* LOADER */
-.loader { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: opacity 0.6s ease, visibility 0.6s ease; }
-.loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-.loader-bg { position: absolute; inset: 0; background: radial-gradient(ellipse at center, #1a0a3e 0%, #08080f 60%); animation: loaderBg 3s ease-in-out infinite alternate; }
-@keyframes loaderBg { from { background: radial-gradient(ellipse at center, #1a0a3e 0%, #08080f 60%); } to { background: radial-gradient(ellipse at 60% 40%, #0a1a3e 0%, #08080f 60%); } }
-.loader-inner { position: relative; z-index: 1; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 24px; }
-.loader-logo { font-family: var(--font-display); font-size: 2.8rem; font-weight: 800; letter-spacing: 0.05em; animation: loaderPulse 1.5s ease-in-out infinite; }
-.loader-logo span { color: var(--primary); }
-@keyframes loaderPulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
-.loader-spinner { position: relative; width: 64px; height: 64px; }
-.spinner-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent; animation: spin 1.5s linear infinite; }
-.spinner-ring:nth-child(1) { border-top-color: var(--primary); animation-duration: 1s; }
-.spinner-ring:nth-child(2) { inset: 8px; border-right-color: var(--accent); animation-duration: 1.5s; animation-direction: reverse; }
-.spinner-ring:nth-child(3) { inset: 16px; border-bottom-color: var(--accent2); animation-duration: 2s; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.loader-text { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); letter-spacing: 0.15em; text-transform: uppercase; }
-
-/* CONTAINER */
-.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-
-/* BUTTONS */
-.btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 10px; font-family: var(--font-display); font-size: 0.9rem; font-weight: 600; letter-spacing: 0.02em; transition: var(--transition); position: relative; overflow: hidden; cursor: pointer; white-space: nowrap; z-index: 10; }
-.btn-sm { padding: 8px 16px; font-size: 0.8rem; border-radius: 8px; }
-.btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 20px rgba(99,102,241,0.3); }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.5); }
-.btn-glow { box-shadow: 0 0 20px rgba(99,102,241,0.4), 0 4px 20px rgba(99,102,241,0.3); }
-.btn-glow:hover { box-shadow: 0 0 35px rgba(99,102,241,0.6), 0 8px 30px rgba(99,102,241,0.4); }
-.btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); backdrop-filter: blur(12px); }
-.btn-ghost:hover { background: var(--surface); border-color: var(--primary); color: var(--primary-light); transform: translateY(-2px); }
-.ripple { position: relative; overflow: hidden; }
-.ripple-effect { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.2); transform: scale(0); animation: rippleAnim 0.6s linear; pointer-events: none; }
-@keyframes rippleAnim { to { transform: scale(4); opacity: 0; } }
-
-/* NAVBAR */
-.navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 20px 0; transition: var(--transition); }
-.navbar.scrolled { background: rgba(8,8,16,0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 12px 0; box-shadow: 0 4px 40px rgba(0,0,0,0.3); }
-.nav-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 32px; }
-.nav-logo { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; letter-spacing: 0.05em; flex-shrink: 0; }
-.nav-logo span { color: var(--primary); }
-.nav-links { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-.nav-link { padding: 6px 12px; font-size: 0.88rem; font-weight: 500; color: var(--text-muted); border-radius: 8px; transition: var(--transition); position: relative; }
-.nav-link::after { content: ''; position: absolute; bottom: 2px; left: 50%; right: 50%; height: 2px; background: var(--primary); transition: var(--transition); border-radius: 2px; }
-.nav-link:hover, .nav-link.active { color: var(--text); }
-.nav-link:hover::after, .nav-link.active::after { left: 12px; right: 12px; }
-.nav-cta { margin-left: 8px; flex-shrink: 0; }
-.hamburger { display: none; flex-direction: column; gap: 5px; padding: 4px; margin-left: 8px; flex-shrink: 0; }
-.hamburger span { display: block; width: 24px; height: 2px; background: var(--text); border-radius: 2px; transition: var(--transition); }
-.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
-.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-
-/* MOBILE SIDEBAR */
-.mobile-sidebar { position: fixed; top: 0; right: -100%; width: min(320px, 80vw); height: 100vh; background: rgba(10,10,20,0.97); backdrop-filter: blur(30px); border-left: 1px solid var(--border); z-index: 1001; transition: right 0.4s cubic-bezier(0.4,0,0.2,1); padding: 80px 32px 40px; display: flex; flex-direction: column; }
-.mobile-sidebar.open { right: 0; }
-.sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; opacity: 0; visibility: hidden; transition: var(--transition); backdrop-filter: blur(4px); }
-.sidebar-overlay.open { opacity: 1; visibility: visible; }
-.sidebar-logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; margin-bottom: 40px; }
-.sidebar-logo span { color: var(--primary); }
-.sidebar-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-.sidebar-link { display: block; padding: 14px 16px; font-size: 1rem; font-weight: 500; color: var(--text-muted); border-radius: 10px; transition: var(--transition); }
-.sidebar-link:hover { color: var(--text); background: var(--surface2); padding-left: 24px; }
-.sidebar-cta { margin-top: 24px; justify-content: center; }
-
-/* HERO */
-.hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; padding: 120px 24px 80px; text-align: center; }
-.hero-content { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; }
-.particles-canvas { position: absolute; inset: 0; z-index: 0; }
-.hero-blobs { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
-.blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.35; animation: blobFloat 8s ease-in-out infinite; }
-.blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, var(--primary) 0%, transparent 70%); top: -100px; left: -100px; }
-.blob-2 { width: 400px; height: 400px; background: radial-gradient(circle, var(--accent2) 0%, transparent 70%); top: 20%; right: -80px; animation-delay: -3s; }
-.blob-3 { width: 300px; height: 300px; background: radial-gradient(circle, var(--accent) 0%, transparent 70%); bottom: 10%; left: 30%; animation-delay: -5s; }
-@keyframes blobFloat { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(30px,-20px) scale(1.05); } 66% { transform: translate(-20px,30px) scale(0.95); } }
-
-/* SOCIAL BAR */
-.social-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; position: relative; z-index: 2; margin-bottom: 40px; }
-.social-card { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; font-size: 1.1rem; color: var(--text-muted); backdrop-filter: blur(12px); transition: var(--transition); position: relative; }
-.social-card:hover { color: var(--primary-light); border-color: var(--primary); background: rgba(99,102,241,0.1); transform: translateY(-4px); box-shadow: 0 8px 24px rgba(99,102,241,0.3); }
-.social-card[data-tooltip]::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); padding: 4px 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; font-size: 0.7rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: var(--transition); }
-.social-card:hover[data-tooltip]::after { opacity: 1; }
-
-/* STATUS PANEL */
-.status-panel { position: relative; z-index: 2; display: inline-flex; flex-direction: column; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 24px; backdrop-filter: blur(16px); margin-bottom: 40px; min-width: 280px; }
-.status-header { font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-dim); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
-.status-items { display: flex; flex-direction: column; gap: 8px; }
-.status-item { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-muted); }
-.status-name { flex: 1; }
-.status-badge { font-family: var(--font-mono); font-size: 0.7rem; padding: 2px 10px; border-radius: 20px; font-weight: 700; letter-spacing: 0.05em; }
-.status-badge.online { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
-.status-badge.offline { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
-.pulse-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-.pulse-dot.green { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulseGreen 2s ease-in-out infinite; }
-.pulse-dot.red { background: var(--red); box-shadow: 0 0 8px var(--red); animation: pulseRed 2s ease-in-out infinite; }
-.pulse-dot.small { width: 6px; height: 6px; }
-.pulse-green { background: var(--green); box-shadow: 0 0 8px var(--green); width: 8px; height: 8px; border-radius: 50%; display: inline-block; animation: pulseGreen 2s ease-in-out infinite; }
-@keyframes pulseGreen { 0%,100% { box-shadow: 0 0 6px var(--green); opacity: 1; } 50% { box-shadow: 0 0 16px var(--green), 0 0 24px rgba(34,197,94,0.4); opacity: 0.7; } }
-@keyframes pulseRed { 0%,100% { box-shadow: 0 0 6px var(--red); } 50% { box-shadow: 0 0 16px var(--red), 0 0 24px rgba(239,68,68,0.4); } }
-
-/* HERO CONTENT */
-.hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); border-radius: 30px; font-size: 0.8rem; font-family: var(--font-mono); color: var(--primary-light); margin-bottom: 24px; text-transform: uppercase; letter-spacing: 0.1em; }
-.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary-light); animation: pulseGreen 2s infinite; }
-.hero-title { font-family: var(--font-display); font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 20px; }
-.gradient-text { background: linear-gradient(135deg, var(--primary-light), var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-.hero-subtitle { font-size: 1.3rem; font-weight: 400; color: var(--text-muted); margin-bottom: 16px; }
-.hero-desc { font-size: 1rem; color: var(--text-dim); max-width: 600px; margin: 0 auto 36px; line-height: 1.7; }
-.hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-.section-divider { position: absolute; bottom: 0; left: 0; right: 0; z-index: 3; }
-.section-divider svg { display: block; width: 100%; height: 80px; }
-
-/* SECTIONS COMMON */
-section { padding: 100px 0; }
-.section-header { text-align: center; margin-bottom: 60px; }
-.section-tag { display: inline-block; padding: 4px 14px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); border-radius: 20px; font-size: 0.75rem; font-family: var(--font-mono); color: var(--primary-light); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; }
-.section-title { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 16px; }
-.section-desc { color: var(--text-muted); max-width: 550px; margin: 0 auto; }
-
-/* STATS */
-.stats-section { padding: 60px 0; background: var(--bg2); }
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px 24px; text-align: center; backdrop-filter: blur(12px); transition: var(--transition); }
-.stat-card:hover { border-color: var(--primary); box-shadow: 0 0 30px rgba(99,102,241,0.15); transform: translateY(-4px); }
-.stat-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; margin: 0 auto 16px; font-size: 1.2rem; color: var(--primary-light); }
-.stat-num { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; line-height: 1; margin-bottom: 8px; }
-.stat-label { font-size: 0.85rem; color: var(--text-muted); }
-
-/* FEATURES */
-.features-section { background: var(--bg); }
-.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-.feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px 28px; transition: var(--transition); position: relative; overflow: hidden; }
-.feature-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--primary), transparent); opacity: 0; transition: var(--transition); }
-.feature-card:hover { border-color: rgba(99,102,241,0.3); transform: translateY(-6px); box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 30px rgba(99,102,241,0.1); }
-.feature-card:hover::before { opacity: 1; }
-.feature-icon { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(6,182,212,0.1)); border: 1px solid rgba(99,102,241,0.2); border-radius: 14px; margin-bottom: 20px; font-size: 1.3rem; color: var(--primary-light); transition: var(--transition); }
-.feature-card:hover .feature-icon { background: rgba(99,102,241,0.2); box-shadow: 0 0 20px rgba(99,102,241,0.3); }
-.feature-card h3 { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; }
-.feature-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; }
-
-/* APIS */
-.apis-section { background: var(--bg2); }
-.api-search-bar { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 20px; max-width: 500px; margin: 0 auto 24px; transition: var(--transition); }
-.api-search-bar:focus-within { border-color: var(--primary); box-shadow: 0 0 20px rgba(99,102,241,0.2); }
-.api-search-bar i { color: var(--text-dim); }
-.api-search-bar input { flex: 1; background: none; color: var(--text); font-size: 0.9rem; }
-.api-search-bar input::placeholder { color: var(--text-dim); }
-.api-filters { display: flex; justify-content: center; gap: 10px; margin-bottom: 48px; flex-wrap: wrap; }
-.filter-btn { padding: 8px 18px; border-radius: 20px; font-size: 0.82rem; font-weight: 500; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); transition: var(--transition); }
-.filter-btn:hover, .filter-btn.active { background: rgba(99,102,241,0.15); border-color: var(--primary); color: var(--primary-light); }
-.api-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; max-width: 900px; margin: 0 auto; }
-
-/* API CARD — FIX: ensure buttons always receive pointer events */
-.api-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; position: relative; overflow: hidden; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
-.api-card::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 80% 20%, rgba(99,102,241,0.08), transparent 70%); opacity: 0; transition: var(--transition); pointer-events: none; }
-.api-card:hover { border-color: rgba(99,102,241,0.4); box-shadow: 0 24px 50px rgba(0,0,0,0.35), 0 0 40px rgba(99,102,241,0.15); }
-.api-card:hover::after { opacity: 1; }
-.api-card-top-border { position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--primary), var(--accent)); opacity: 0; transition: var(--transition); pointer-events: none; }
-.api-card:hover .api-card-top-border { opacity: 1; }
-.api-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.api-icon { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.4rem; }
-.ai-icon { background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2)); color: var(--primary-light); border: 1px solid rgba(99,102,241,0.25); }
-.tiktok-icon { background: linear-gradient(135deg, rgba(0,0,0,0.4), rgba(254,44,85,0.2)); color: #fe2c55; border: 1px solid rgba(254,44,85,0.25); }
-.api-status-badge { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-family: var(--font-mono); color: var(--green); padding: 4px 12px; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 20px; }
-.api-name { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; }
-.api-desc { font-size: 0.88rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 20px; }
-.api-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-.meta-item { display: flex; flex-direction: column; gap: 3px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
-.meta-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-mono); }
-.meta-val { font-size: 0.85rem; font-weight: 600; }
-.method-get { color: var(--green); }
-.api-endpoint { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); overflow: hidden; }
-.api-endpoint code { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.copy-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; color: var(--text-muted); cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
-.copy-btn:hover { color: var(--primary-light); border-color: var(--primary); }
-
-/* API ACTIONS — critical fix: always on top, always clickable */
-.api-actions { display: flex; gap: 12px; position: relative; z-index: 20; }
-.api-actions .btn { position: relative; z-index: 20; }
-
-/* TESTER */
-.tester-section { background: var(--bg); }
-
-/* Tester API Type Selector */
-.tester-api-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 32px; }
-.tester-api-tab { display: flex; align-items: center; gap: 8px; padding: 10px 22px; background: var(--surface); border: 1px solid var(--border); border-radius: 30px; font-size: 0.88rem; font-weight: 600; color: var(--text-muted); transition: var(--transition); font-family: var(--font-display); cursor: pointer; }
-.tester-api-tab:hover { color: var(--text); border-color: var(--primary); }
-.tester-api-tab.active { background: rgba(99,102,241,0.15); border-color: var(--primary); color: var(--primary-light); box-shadow: 0 0 20px rgba(99,102,241,0.2); }
-.tester-api-tab .tab-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); transition: var(--transition); flex-shrink: 0; }
-.tester-api-tab.active .tab-dot { background: var(--primary-light); box-shadow: 0 0 6px var(--primary-light); animation: pulseGreen 2s infinite; }
-
-/* Tester panels */
-.tester-panel { display: none; }
-.tester-panel.active { display: block; }
-
-.tester-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; max-width: 1000px; margin: 0 auto; }
-.tester-input-area, .tester-output-area { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-.tester-url-bar { background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim); overflow: hidden; }
-.method-badge { padding: 2px 10px; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); border-radius: 4px; font-size: 0.72rem; font-weight: 700; color: var(--green); flex-shrink: 0; }
-.base-url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--accent); }
-.tester-form { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
-.form-group { display: flex; flex-direction: column; gap: 8px; }
-.form-group label { font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono); letter-spacing: 0.05em; }
-.form-group input { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text); font-size: 0.9rem; transition: var(--transition); }
-.form-group input:focus { border-color: var(--primary); box-shadow: 0 0 16px rgba(99,102,241,0.2); }
-.form-group input::placeholder { color: var(--text-dim); }
-
-/* TikTok result display */
-.tt-result { display: flex; flex-direction: column; gap: 16px; padding: 20px; }
-.tt-thumb { width: 100%; border-radius: 12px; overflow: hidden; background: rgba(0,0,0,0.4); aspect-ratio: 9/16; max-height: 200px; object-fit: cover; border: 1px solid var(--border); }
-.tt-info { display: flex; flex-direction: column; gap: 8px; }
-.tt-title { font-size: 0.85rem; color: var(--text); font-weight: 600; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.tt-author { font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
-.tt-author i { color: var(--primary-light); }
-.tt-dl-btns { display: flex; flex-direction: column; gap: 8px; }
-.tt-dl-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; font-family: var(--font-display); transition: var(--transition); text-decoration: none; cursor: pointer; border: none; }
-.tt-dl-btn.primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
-.tt-dl-btn.primary:hover { box-shadow: 0 4px 16px rgba(99,102,241,0.4); transform: translateY(-2px); }
-.tt-dl-btn.secondary { background: rgba(254,44,85,0.15); color: #fe2c55; border: 1px solid rgba(254,44,85,0.3); }
-.tt-dl-btn.secondary:hover { background: rgba(254,44,85,0.25); transform: translateY(-2px); }
-.tt-dl-btn.ghost { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
-.tt-dl-btn.ghost:hover { color: var(--primary-light); border-color: var(--primary); }
-
-/* Tiktok URL input hint */
-.input-hint { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; font-family: var(--font-mono); }
-.input-hint code { color: var(--accent); background: rgba(6,182,212,0.1); padding: 1px 5px; border-radius: 4px; }
-
-.terminal-header { background: rgba(0,0,0,0.4); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; gap: 8px; }
-.terminal-dots { display: flex; gap: 6px; }
-.tdot { width: 12px; height: 12px; border-radius: 50%; }
-.tdot.red { background: #ff5f57; }
-.tdot.yellow { background: #ffbd2e; }
-.tdot.green { background: #28c840; }
-.terminal-title { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim); }
-.terminal-body { min-height: 280px; padding: 20px; font-family: var(--font-mono); font-size: 0.8rem; overflow-y: auto; max-height: 480px; }
-.terminal-placeholder { height: 100%; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--text-dim); font-size: 0.85rem; text-align: center; }
-.terminal-placeholder i { font-size: 2rem; opacity: 0.3; }
-.terminal-loading { display: flex; align-items: center; gap: 10px; color: var(--accent); font-family: var(--font-mono); font-size: 0.85rem; }
-.terminal-loading .spinner-sm { width: 16px; height: 16px; border: 2px solid rgba(6,182,212,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
-.json-output { line-height: 1.8; }
-.json-key { color: var(--primary-light); }
-.json-string { color: var(--accent); }
-.json-number { color: #fb923c; }
-.json-boolean { color: var(--accent2); }
-.json-null { color: var(--text-dim); }
-
-/* DOCS */
-.docs-section { background: var(--bg2); }
-.docs-tabs { display: flex; gap: 4px; justify-content: center; margin-bottom: 32px; flex-wrap: wrap; }
-.doc-tab { padding: 10px 20px; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; transition: var(--transition); }
-.doc-tab.active, .doc-tab:hover { color: var(--primary-light); border-color: var(--primary); background: rgba(99,102,241,0.1); }
-.code-blocks { max-width: 800px; margin: 0 auto; }
-.code-block { display: none; }
-.code-block.active { display: block; }
-.code-header { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.5); border: 1px solid var(--border); border-bottom: none; border-radius: var(--radius-sm) var(--radius-sm) 0 0; padding: 12px 20px; }
-.code-lang { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim); }
-pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 0 0 var(--radius-sm) var(--radius-sm); padding: 24px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.8; }
-.kw { color: #a78bfa; }
-.fn { color: #60a5fa; }
-.str { color: #86efac; }
-.num { color: #fb923c; }
-.cm { color: var(--text-dim); font-style: italic; }
-.tmpl { color: #fbbf24; }
-.key { color: var(--primary-light); }
-
-/* PRICING */
-.pricing-section { background: var(--bg); }
-.pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width: 1000px; margin: 0 auto; align-items: start; }
-.pricing-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 36px 28px; transition: var(--transition); position: relative; overflow: hidden; }
-.pricing-card:hover { transform: translateY(-8px); box-shadow: 0 24px 50px rgba(0,0,0,0.4); }
-.pricing-card.featured { border-color: var(--primary); background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(6,182,212,0.04)); box-shadow: 0 0 40px rgba(99,102,241,0.2); transform: scale(1.03); }
-.pricing-card.featured:hover { transform: scale(1.03) translateY(-8px); }
-.featured-badge { position: absolute; top: 20px; right: 20px; padding: 4px 12px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 20px; font-size: 0.72rem; font-weight: 700; color: white; }
-.pricing-header { margin-bottom: 28px; }
-.plan-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; font-size: 1.1rem; color: var(--primary-light); margin-bottom: 16px; }
-.plan-name { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; margin-bottom: 16px; }
-.plan-price { display: flex; align-items: baseline; gap: 4px; }
-.price-currency { font-size: 0.9rem; color: var(--text-muted); }
-.price-amount { font-family: var(--font-display); font-size: 2.5rem; font-weight: 800; }
-.price-period { font-size: 0.85rem; color: var(--text-muted); }
-.plan-features { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
-.plan-features li { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; color: var(--text-muted); }
-.plan-features li i.fa-check { color: var(--green); }
-.plan-features li i.fa-times { color: var(--text-dim); }
-.plan-features li.disabled { opacity: 0.4; }
-.pricing-card .btn { width: 100%; justify-content: center; }
-
-/* TESTIMONIALS */
-.testimonials-section { background: var(--bg2); overflow: hidden; }
-.testimonial-slider { position: relative; overflow: hidden; }
-.testimonial-track { display: flex; gap: 24px; transition: transform 0.6s cubic-bezier(0.4,0,0.2,1); }
-.testimonial-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; min-width: 320px; flex: 0 0 calc(33.333% - 16px); }
-.testi-stars { color: #fbbf24; font-size: 0.85rem; display: flex; gap: 3px; margin-bottom: 16px; }
-.testimonial-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 20px; font-style: italic; }
-.testi-author { display: flex; align-items: center; gap: 12px; }
-.testi-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; color: white; flex-shrink: 0; }
-.testi-name { font-weight: 600; font-size: 0.9rem; }
-.testi-role { font-size: 0.78rem; color: var(--text-dim); }
-.slider-controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 32px; }
-.slider-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text-muted); transition: var(--transition); }
-.slider-btn:hover { color: var(--primary-light); border-color: var(--primary); }
-.slider-dots { display: flex; gap: 8px; }
-.slider-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: var(--transition); }
-.slider-dot.active { background: var(--primary); box-shadow: 0 0 8px var(--primary); width: 24px; border-radius: 4px; }
-
-/* FAQ */
-.faq-section { background: var(--bg); }
-.faq-list { max-width: 700px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
-.faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; transition: var(--transition); }
-.faq-item:hover { border-color: rgba(99,102,241,0.3); }
-.faq-question { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; font-size: 0.95rem; font-weight: 600; color: var(--text); text-align: left; transition: var(--transition); }
-.faq-question:hover { color: var(--primary-light); }
-.faq-icon { transition: var(--transition); color: var(--text-muted); flex-shrink: 0; }
-.faq-item.open .faq-icon { transform: rotate(180deg); color: var(--primary-light); }
-.faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
-.faq-answer.open { max-height: 200px; }
-.faq-answer p { padding: 0 24px 20px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; }
-.faq-answer code { font-family: var(--font-mono); font-size: 0.8rem; background: rgba(99,102,241,0.1); color: var(--accent); padding: 2px 6px; border-radius: 4px; }
-
-/* CONTACT */
-.contact-section { background: var(--bg2); }
-.contact-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1000px; margin: 0 auto; }
-.contact-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px 24px; display: flex; align-items: flex-start; gap: 16px; transition: var(--transition); }
-.contact-card:hover { border-color: var(--primary); transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
-.contact-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; font-size: 1.1rem; color: var(--primary-light); flex-shrink: 0; }
-.contact-label { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 4px; }
-.contact-val { font-size: 0.85rem; color: var(--text-muted); transition: var(--transition); }
-.contact-card:hover .contact-val { color: var(--primary-light); }
-
-/* FOOTER */
-.footer { background: var(--bg); border-top: 1px solid var(--border); padding: 80px 0 32px; position: relative; overflow: hidden; }
-.footer-glow { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 1px; background: linear-gradient(90deg, transparent, var(--primary), transparent); box-shadow: 0 0 40px var(--primary); }
-.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 60px; }
-.footer-logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; margin-bottom: 16px; }
-.footer-logo span { color: var(--primary); }
-.footer-brand p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 24px; max-width: 280px; }
-.footer-socials { display: flex; gap: 12px; }
-.fsocial { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text-muted); transition: var(--transition); font-size: 0.9rem; }
-.fsocial:hover { color: var(--primary-light); border-color: var(--primary); background: rgba(99,102,241,0.1); }
-.footer-col h4 { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; margin-bottom: 20px; }
-.footer-col ul { display: flex; flex-direction: column; gap: 10px; }
-.footer-col ul li a { font-size: 0.85rem; color: var(--text-muted); transition: var(--transition); }
-.footer-col ul li a:hover { color: var(--primary-light); padding-left: 4px; }
-.footer-divider { height: 1px; background: var(--border); margin-bottom: 28px; }
-.footer-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
-.footer-copy { font-size: 0.82rem; color: var(--text-dim); }
-.footer-status { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text-dim); }
-
-/* SCROLL TOP */
-.scroll-top { position: fixed; bottom: 32px; right: 32px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--primary); border-radius: 12px; color: white; font-size: 1rem; z-index: 500; opacity: 0; visibility: hidden; transform: translateY(10px); transition: var(--transition); box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
-.scroll-top.visible { opacity: 1; visibility: visible; transform: translateY(0); }
-.scroll-top:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(99,102,241,0.5); }
-
-/* TOAST */
-.toast-container { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 9998; pointer-events: none; }
-.toast { display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: rgba(15,15,30,0.95); border: 1px solid var(--border); border-radius: 10px; backdrop-filter: blur(20px); font-size: 0.85rem; color: var(--text); white-space: nowrap; box-shadow: 0 8px 32px rgba(0,0,0,0.4); animation: toastIn 0.4s ease forwards; pointer-events: auto; }
-.toast.toast-success { border-color: rgba(34,197,94,0.3); }
-.toast.toast-success i { color: var(--green); }
-.toast.toast-error { border-color: rgba(239,68,68,0.3); }
-.toast.toast-error i { color: var(--red); }
-.toast.toast-out { animation: toastOut 0.4s ease forwards; }
-@keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
-
-/* RESPONSIVE */
-@media (max-width: 1024px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .features-grid { grid-template-columns: repeat(2, 1fr); }
-  .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
-  .pricing-card.featured { transform: none; }
-  .pricing-card.featured:hover { transform: translateY(-8px); }
-  .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
-  .contact-grid { grid-template-columns: repeat(2, 1fr); }
-  .testimonial-card { flex: 0 0 calc(50% - 12px); }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--sans); background:var(--paper); color:var(--ink);
+  min-height:100vh;
+  background-image:
+    linear-gradient(var(--paper2) 1px, transparent 1px),
+    linear-gradient(90deg, var(--paper2) 1px, transparent 1px);
+  background-size:28px 28px;
 }
-@media (max-width: 768px) {
-  section { padding: 72px 0; }
-  .nav-links, .nav-cta { display: none; }
-  .hamburger { display: flex; }
-  .hero { padding: 100px 16px 60px; }
-  .api-grid { grid-template-columns: 1fr; max-width: 480px; }
-  .tester-wrapper { grid-template-columns: 1fr; }
-  .features-grid { grid-template-columns: 1fr; }
-  .contact-grid { grid-template-columns: repeat(2, 1fr); }
-  .footer-grid { grid-template-columns: 1fr; gap: 32px; }
-  .testimonial-card { flex: 0 0 100%; min-width: unset; }
-  .hero-actions { flex-direction: column; align-items: center; }
-  .social-bar { gap: 8px; }
-  .social-card { width: 42px; height: 42px; font-size: 1rem; }
-  .tester-api-tabs { flex-direction: column; align-items: center; }
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;}
+input{font-family:inherit;}
+code,pre{font-family:var(--mono);}
+
+/* ---------- topbar ---------- */
+.topbar{
+  position:sticky; top:0; z-index:100;
+  display:flex; align-items:center; gap:20px;
+  padding:14px 24px; background:rgba(238,242,245,0.92);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
 }
-@media (max-width: 480px) {
-  .stats-grid { grid-template-columns: 1fr 1fr; }
-  .contact-grid { grid-template-columns: 1fr; }
-  .hero-title { font-size: 2.2rem; }
-  .scroll-top { bottom: 20px; right: 20px; }
+.brand{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-weight:700; font-size:1.02rem; letter-spacing:.01em; flex-shrink:0;}
+.brand .dot{width:9px;height:9px;border-radius:2px;background:var(--teal); box-shadow:0 0 0 3px var(--teal-dim); animation:blink 2.4s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1} 50%{opacity:.35}}
+.brand small{font-family:var(--sans); font-weight:500; color:var(--ink-dim); font-size:.72rem; letter-spacing:.06em; text-transform:uppercase;}
+.topbar-search{
+  flex:1; max-width:420px; display:flex; align-items:center; gap:8px;
+  background:var(--card); border:1px solid var(--line); border-radius:8px; padding:8px 12px;
+  font-family:var(--mono); font-size:.82rem; color:var(--ink-dim);
+}
+.topbar-search input{flex:1; background:none; border:none; color:var(--ink); font-size:.82rem;}
+.topbar-search input::placeholder{color:var(--ink-faint);}
+.topbar-search kbd{font-size:.68rem; padding:1px 6px; border:1px solid var(--line); border-radius:4px; color:var(--ink-faint);}
+.topbar-links{display:flex; align-items:center; gap:4px; margin-left:auto;}
+.topbar-link{padding:7px 12px; font-size:.82rem; font-weight:600; color:var(--ink-dim); border-radius:7px; transition:.2s;}
+.topbar-link:hover{background:var(--card); color:var(--ink);}
+.status-chip{display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:20px; background:var(--teal-dim); border:1px solid var(--teal); font-family:var(--mono); font-size:.72rem; color:var(--teal); font-weight:600;}
+.status-chip .pd{width:6px;height:6px;border-radius:50%;background:var(--teal); box-shadow:0 0 6px var(--teal); animation:blink 1.8s infinite;}
+
+/* ---------- layout ---------- */
+.layout{display:grid; grid-template-columns:260px 1fr; min-height:calc(100vh - 57px); transition:grid-template-columns .25s ease;}
+.layout.collapsed{grid-template-columns:0px 1fr;}
+
+/* ---------- sidebar / endpoint tree ---------- */
+.sidebar{
+  border-right:1px solid var(--line); padding:24px 0 40px;
+  position:relative; overflow-y:auto; overflow-x:hidden;
+  min-width:260px; transition:min-width .25s ease, opacity .2s ease;
+}
+.layout.collapsed .sidebar{min-width:0; width:0; padding:24px 0 40px; opacity:0; pointer-events:none;}
+.collapse-btn{
+  display:flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:7px;
+  background:var(--card); border:1px solid var(--line-strong); color:var(--ink-dim); flex-shrink:0; transition:.15s;
+}
+.collapse-btn:hover{color:var(--ink); border-color:var(--teal);}
+.collapse-btn.rotated i{transform:rotate(180deg);}
+.collapse-btn i{transition:.2s;}
+.sidebar::before{
+  content:''; position:absolute; top:0; bottom:0; left:24px; width:1px;
+  background:repeating-linear-gradient(to bottom, var(--line-strong) 0 4px, transparent 4px 8px);
+}
+.sidebar-group{margin-bottom:6px;}
+.sidebar-group-label{
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--ink-faint); padding:10px 24px 8px 40px; font-weight:600;
+}
+.node{
+  position:relative; display:flex; align-items:center; gap:10px;
+  padding:9px 20px 9px 40px; cursor:pointer; transition:.15s;
+  border-left:2px solid transparent;
+}
+.node::before{
+  content:''; position:absolute; left:24px; top:50%; width:14px; height:1px; background:var(--line-strong);
+}
+.node:hover{background:var(--card);}
+.node.active{background:var(--card); border-left-color:var(--teal);}
+.node.active .node-name{color:var(--ink); font-weight:700;}
+.node-method{
+  font-family:var(--mono); font-size:.62rem; font-weight:700; padding:2px 6px; border-radius:4px;
+  flex-shrink:0; min-width:34px; text-align:center;
+}
+.node-method.get{background:var(--teal-dim); color:var(--teal);}
+.node-method.post{background:var(--amber-dim); color:var(--amber);}
+.node-name{font-size:.83rem; color:var(--ink-dim); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.node-pulse{width:5px;height:5px;border-radius:50%;background:var(--teal); margin-left:auto; flex-shrink:0; box-shadow:0 0 5px var(--teal);}
+
+/* ---------- main ---------- */
+.main{padding:32px 36px 80px; max-width:1180px;}
+.crumb{font-family:var(--mono); font-size:.72rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px;}
+.crumb span{color:var(--teal);}
+.title-row{display:flex; align-items:center; gap:14px; margin-bottom:6px; flex-wrap:wrap;}
+.page-title{font-family:var(--mono); font-size:1.9rem; font-weight:700; letter-spacing:-.01em;}
+.tag-live{display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:.68rem; font-weight:700; color:var(--teal); background:var(--teal-dim); border:1px solid var(--teal); padding:3px 10px; border-radius:20px; text-transform:uppercase;}
+.page-desc{color:var(--ink-dim); font-size:.95rem; max-width:640px; margin-bottom:28px; line-height:1.65;}
+
+.split{display:grid; grid-template-columns:1fr 420px; gap:28px; align-items:start;}
+
+/* ---------- docs column ---------- */
+.doc-block{margin-bottom:32px;}
+.doc-label{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:12px; font-weight:600; display:flex; align-items:center; gap:8px;}
+.doc-label::after{content:''; flex:1; height:1px; background:var(--line);}
+
+.param-table{width:100%; border-collapse:collapse; font-size:.85rem;}
+.param-table th{text-align:left; font-family:var(--mono); font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); padding:8px 12px; border-bottom:1px solid var(--line-strong);}
+.param-table td{padding:12px; border-bottom:1px solid var(--line); vertical-align:top;}
+.param-table code{background:var(--paper2); padding:2px 6px; border-radius:4px; font-size:.8rem; color:var(--teal); font-weight:600;}
+.param-req{font-family:var(--mono); font-size:.65rem; font-weight:700; color:var(--red);}
+.param-opt{font-family:var(--mono); font-size:.65rem; color:var(--ink-faint);}
+.param-desc{color:var(--ink-dim); font-size:.83rem;}
+
+.snippet-tabs{display:flex; gap:2px; margin-bottom:0; border-bottom:1px solid var(--line-strong);}
+.snippet-tab{padding:9px 16px; font-family:var(--mono); font-size:.76rem; font-weight:600; color:var(--ink-faint); border-bottom:2px solid transparent; transition:.15s;}
+.snippet-tab:hover{color:var(--ink-dim);}
+.snippet-tab.active{color:var(--teal); border-bottom-color:var(--teal);}
+.snippet-body{position:relative; background:var(--ink); border-radius:0 0 var(--radius) var(--radius); overflow:hidden;}
+.snippet-pane{display:none; padding:20px; font-size:.8rem; line-height:1.75; color:#D6DEE5; overflow-x:auto;}
+.snippet-pane.active{display:block;}
+.snippet-copy{position:absolute; top:10px; right:10px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14); color:#D6DEE5; font-size:.72rem; padding:5px 10px; border-radius:6px; display:flex; align-items:center; gap:6px; transition:.15s;}
+.snippet-copy:hover{background:rgba(255,255,255,.16);}
+.sk{color:#7FB3E8;} .sf{color:#8FD5C0;} .ss{color:#E3C078;} .sn{color:#E39A7A;} .sc{color:#6B7A87; font-style:italic;}
+
+/* ---------- console column ---------- */
+.console{
+  background:var(--card); border:1px solid var(--line-strong); border-radius:var(--radius);
+  position:sticky; top:80px; overflow:hidden;
+}
+.console-head{
+  display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--paper2); border-bottom:1px solid var(--line-strong);
+}
+.console-head .dots{display:flex; gap:5px;}
+.console-head .dots span{width:8px;height:8px;border-radius:50%; background:var(--line-strong);}
+.console-head-title{font-family:var(--mono); font-size:.74rem; font-weight:600; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.06em;}
+.trace{margin-left:auto; width:70px; height:16px;}
+.trace path{fill:none; stroke:var(--line-strong); stroke-width:1.4; transition:stroke .3s;}
+.trace.live path{stroke:var(--teal);}
+
+.console-url{
+  display:flex; align-items:center; gap:8px; padding:12px 16px; font-family:var(--mono); font-size:.72rem;
+  color:var(--ink-dim); border-bottom:1px solid var(--line); overflow-x:auto; white-space:nowrap;
+}
+.method-pill{font-weight:700; padding:2px 8px; border-radius:4px; flex-shrink:0;}
+.method-pill.get{background:var(--teal-dim); color:var(--teal);}
+.method-pill.post{background:var(--amber-dim); color:var(--amber);}
+
+.console-form{padding:16px; display:flex; flex-direction:column; gap:14px;}
+.field{display:flex; flex-direction:column; gap:6px;}
+.field label{font-family:var(--mono); font-size:.72rem; color:var(--ink-dim); display:flex; gap:6px; align-items:center;}
+.field label .req{color:var(--red); font-size:.65rem;}
+.field input{
+  background:var(--paper); border:1px solid var(--line-strong); border-radius:7px; padding:10px 12px;
+  font-size:.85rem; color:var(--ink); transition:.15s;
+}
+.field input:focus{outline:none; border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-dim);}
+.send-btn{
+  display:flex; align-items:center; justify-content:center; gap:8px; padding:11px; border-radius:8px;
+  background:var(--ink); color:#fff; font-family:var(--mono); font-weight:700; font-size:.82rem;
+  letter-spacing:.02em; transition:.15s; border:none;
+}
+.send-btn:hover{background:#0d1620;}
+.send-btn:disabled{opacity:.6; cursor:progress;}
+
+.console-response{border-top:1px solid var(--line);}
+.resp-tabs{display:flex; align-items:center; padding:0 16px; border-bottom:1px solid var(--line); gap:2px;}
+.resp-tab{padding:9px 12px; font-family:var(--mono); font-size:.7rem; font-weight:600; color:var(--ink-faint); border-bottom:2px solid transparent;}
+.resp-tab.active{color:var(--teal); border-bottom-color:var(--teal);}
+.resp-status{margin-left:auto; font-family:var(--mono); font-size:.7rem; font-weight:700; padding:2px 8px; border-radius:4px;}
+.resp-status.ok{color:var(--teal); background:var(--teal-dim);}
+.resp-status.err{color:var(--red); background:var(--red-dim);}
+.resp-body{max-height:340px; overflow:auto; padding:16px; font-family:var(--mono); font-size:.78rem; line-height:1.7; background:var(--ink); color:#D6DEE5;}
+.resp-placeholder{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:36px 16px; color:var(--ink-faint); font-size:.8rem; text-align:center;}
+.resp-placeholder i{font-size:1.4rem; opacity:.5;}
+.tt-card{display:flex; flex-direction:column; gap:10px;}
+.tt-thumb{width:100%; border-radius:8px; max-height:180px; object-fit:cover; border:1px solid rgba(255,255,255,.1);}
+.tt-title{font-family:var(--sans); font-size:.82rem; color:#EAF0F4; line-height:1.5;}
+.tt-author{font-size:.74rem; color:#8FA3B0;}
+.tt-links{display:flex; flex-direction:column; gap:7px; margin-top:4px;}
+.tt-link{display:flex; align-items:center; justify-content:center; gap:8px; padding:9px; border-radius:7px; font-family:var(--sans); font-size:.78rem; font-weight:600; background:var(--teal); color:#08201F;}
+.tt-link:hover{filter:brightness(1.08);}
+
+/* ---------- config view ---------- */
+.cfg-block{background:var(--card); border:1px solid var(--line-strong); border-radius:var(--radius); padding:22px 24px; margin-bottom:24px; max-width:720px;}
+.cfg-block h3{font-family:var(--mono); font-size:.92rem; margin-bottom:4px;}
+.cfg-block .cfg-sub{color:var(--ink-dim); font-size:.82rem; margin-bottom:16px; line-height:1.6;}
+.cfg-row{display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;}
+.cfg-field{display:flex; flex-direction:column; gap:6px; flex:1; min-width:160px;}
+.cfg-field label{font-family:var(--mono); font-size:.7rem; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.06em;}
+.cfg-field input, .cfg-field select, .cfg-field textarea{
+  background:var(--paper); border:1px solid var(--line-strong); border-radius:7px; padding:9px 11px; font-size:.85rem; color:var(--ink); font-family:var(--sans);
+}
+.cfg-field textarea{font-family:var(--mono); font-size:.78rem; resize:vertical; min-height:60px;}
+.cfg-field input:focus, .cfg-field select:focus, .cfg-field textarea:focus{outline:none; border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-dim);}
+.cfg-btn{padding:10px 16px; border-radius:7px; font-family:var(--mono); font-size:.78rem; font-weight:700; border:none; flex-shrink:0;}
+.cfg-btn.primary{background:var(--ink); color:#fff;}
+.cfg-btn.primary:hover{background:#0d1620;}
+.cfg-btn.ghost{background:var(--paper); border:1px solid var(--line-strong); color:var(--ink-dim);}
+.cfg-btn.ghost:hover{color:var(--ink); border-color:var(--ink-faint);}
+.cfg-btn.danger{background:var(--red-dim); color:var(--red); border:1px solid var(--red);}
+.cfg-list{display:flex; flex-direction:column; gap:8px;}
+.cfg-list-item{display:flex; align-items:center; gap:12px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:var(--paper);}
+.cfg-list-item .node-method{flex-shrink:0;}
+.cfg-list-item .clabel{flex:1; font-size:.85rem; font-weight:600;}
+.cfg-list-item .cpath{font-family:var(--mono); font-size:.75rem; color:var(--ink-faint);}
+.cfg-list-item button{width:28px; height:28px; border-radius:6px; background:var(--card); border:1px solid var(--line-strong); color:var(--ink-dim); flex-shrink:0;}
+.cfg-list-item button:hover{color:var(--red); border-color:var(--red);}
+.cfg-params-row{display:flex; gap:8px; align-items:center; margin-bottom:6px;}
+.cfg-params-row input[type="text"]{flex:1;}
+.cfg-params-row label{display:flex; align-items:center; gap:4px; font-size:.72rem; color:var(--ink-dim); white-space:nowrap;}
+.cfg-params-row button{width:26px; height:26px; border-radius:6px; background:var(--paper); border:1px solid var(--line-strong); color:var(--ink-faint); flex-shrink:0;}
+
+/* ---------- toast ---------- */
+.toast-container{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; gap:8px; z-index:1000; pointer-events:none;}
+.toast{display:flex; align-items:center; gap:10px; padding:11px 18px; background:var(--ink); color:#fff; border-radius:8px; font-family:var(--mono); font-size:.78rem; box-shadow:0 8px 24px rgba(0,0,0,.25); animation:tin .3s ease forwards; pointer-events:auto;}
+.toast.ok i{color:var(--teal);} .toast.err i{color:var(--red);}
+.toast.out{animation:tout .3s ease forwards;}
+@keyframes tin{from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:translateY(0)}}
+@keyframes tout{from{opacity:1} to{opacity:0; transform:translateY(14px)}}
+
+/* ---------- mobile ---------- */
+.sidebar-toggle{display:none;}
+@media (max-width:980px){
+  .split{grid-template-columns:1fr;}
+  .console{position:relative; top:0;}
+}
+@media (max-width:760px){
+  .layout{grid-template-columns:1fr;}
+  .sidebar{
+    display:none; position:fixed; top:57px; left:0; right:0; bottom:0; z-index:200; background:var(--paper);
+    padding:16px 0 40px;
+  }
+  .sidebar.open{display:block;}
+  .sidebar-toggle{display:flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--line-strong); padding:7px 12px; border-radius:7px; font-family:var(--mono); font-size:.78rem; font-weight:600;}
+  .collapse-btn{display:none;}
+  .topbar-search{display:none;}
+  .main{padding:20px 16px 60px;}
+  .page-title{font-size:1.4rem;}
 }
 </style>
 </head>
 <body>
 
-  <div class="cursor-glow" id="cursorGlow"></div>
-  <div class="scroll-progress" id="scrollProgress"></div>
+<div class="toast-container" id="toastContainer"></div>
 
-  <!-- LOADING SCREEN -->
-  <div class="loader" id="loader">
-    <div class="loader-inner">
-      <div class="loader-logo">SELORA <span>API</span></div>
-      <div class="loader-spinner">
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
-      </div>
-      <div class="loader-text">Initializing Platform...</div>
-    </div>
-    <div class="loader-bg"></div>
+<!-- TOPBAR -->
+<div class="topbar">
+  <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i> Endpoints</button>
+  <button class="collapse-btn" id="collapseBtn" title="Buka/tutup sidebar"><i class="fas fa-angles-left"></i></button>
+  <div class="brand"><span class="dot"></span>HIKARU<small>&nbsp;rest api</small></div>
+  <div class="topbar-search">
+    <i class="fas fa-magnifying-glass"></i>
+    <input type="text" id="endpointSearch" placeholder="Cari endpoint..." />
+    <kbd>/</kbd>
   </div>
-
-  <!-- NAVBAR -->
-  <nav class="navbar" id="navbar">
-    <div class="nav-container">
-      <a href="#" class="nav-logo">SELORA <span>API</span></a>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="#home" class="nav-link active">Home</a></li>
-        <li><a href="#apis" class="nav-link">APIs</a></li>
-        <li><a href="#docs" class="nav-link">Documentation</a></li>
-        <li><a href="#pricing" class="nav-link">Pricing</a></li>
-        <li><a href="#faq" class="nav-link">FAQ</a></li>
-        <li><a href="#contact" class="nav-link">Contact</a></li>
-      </ul>
-      <a href="#apis" class="btn btn-primary btn-sm nav-cta">Get Started</a>
-      <button class="hamburger" id="hamburger" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </nav>
-
-  <!-- MOBILE SIDEBAR -->
-  <div class="mobile-sidebar" id="mobileSidebar">
-    <div class="sidebar-logo">SELORA <span>API</span></div>
-    <ul class="sidebar-links">
-      <li><a href="#home" class="sidebar-link">Home</a></li>
-      <li><a href="#apis" class="sidebar-link">APIs</a></li>
-      <li><a href="#docs" class="sidebar-link">Documentation</a></li>
-      <li><a href="#pricing" class="sidebar-link">Pricing</a></li>
-      <li><a href="#faq" class="sidebar-link">FAQ</a></li>
-      <li><a href="#contact" class="sidebar-link">Contact</a></li>
-    </ul>
-    <a href="#apis" class="btn btn-primary sidebar-cta">Get Started</a>
+  <div class="topbar-links">
+    <div class="status-chip"><span class="pd"></span> Semua sistem aktif</div>
   </div>
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+</div>
 
-  <!-- HERO -->
-  <section class="hero" id="home">
-    <canvas class="particles-canvas" id="particlesCanvas"></canvas>
-    <div class="hero-blobs">
-      <div class="blob blob-1"></div>
-      <div class="blob blob-2"></div>
-      <div class="blob blob-3"></div>
-    </div>
+<div class="layout">
 
-    <div class="social-bar" data-aos="fade-down" data-aos-delay="200">
-      <a href="https://www.instagram.com/@luttheww" class="social-card" id="social-instagram" data-tooltip="Instagram"><i class="fab fa-instagram"></i></a>
-      <a href="https://github.com/" class="social-card" id="social-github" data-tooltip="GitHub"><i class="fab fa-github"></i></a>
-      <a href="https://www.tiktok.com/@_j1njuuonrblx" class="social-card" id="social-tiktok" data-tooltip="TikTok"><i class="fab fa-tiktok"></i></a>
-      <a href="https://discord.gg/" class="social-card" id="social-discord" data-tooltip="Discord"><i class="fab fa-discord"></i></a>
-      <a href="https://wa.me/6282183012093" class="social-card" id="social-whatsapp" data-tooltip="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-      <a href="mailto:example@email.com" class="social-card" id="social-email" data-tooltip="Email"><i class="fas fa-envelope"></i></a>
-    </div>
-
-    <div class="status-panel" data-aos="fade-up" data-aos-delay="300">
-      <div class="status-header"><span class="pulse-green"></span> System Status</div>
-      <div class="status-items">
-        <div class="status-item">
-          <span class="pulse-dot green"></span>
-          <span class="status-name">AI Chat API</span>
-          <span class="status-badge online">Online</span>
-        </div>
-        <div class="status-item">
-          <span class="pulse-dot green" id="tiktokStatus"></span>
-          <span class="status-name">TikTok Downloader API</span>
-          <span class="status-badge online" id="tiktokBadge">Online</span>
-        </div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-group">
+      <div class="node" id="configNode">
+        <span class="node-method" style="background:var(--paper2); color:var(--ink-dim);"><i class="fas fa-gear"></i></span>
+        <span class="node-name">Config</span>
       </div>
     </div>
+    <div style="height:1px; background:var(--line); margin:8px 24px 8px 40px;"></div>
+    <div id="sidebarTree"></div>
+  </aside>
 
-    <div class="hero-content">
-      <div class="hero-badge" data-aos="fade-up" data-aos-delay="100"><span class="badge-dot"></span> Developer Platform 2026</div>
-      <h1 class="hero-title" data-aos="fade-up" data-aos-delay="200">Powerful &amp; Fast<br /><span class="gradient-text">API Services</span></h1>
-      <p class="hero-subtitle" data-aos="fade-up" data-aos-delay="300">Fast, Reliable, and Modern API Platform for Developers</p>
-      <p class="hero-desc" data-aos="fade-up" data-aos-delay="400">SELORA API menyediakan layanan API modern dengan performa tinggi, dokumentasi lengkap, dan integrasi mudah untuk developer.</p>
-      <div class="hero-actions" data-aos="fade-up" data-aos-delay="500">
-        <a href="#apis" class="btn btn-primary btn-glow ripple"><i class="fas fa-rocket"></i> Explore APIs</a>
-        <a href="#docs" class="btn btn-ghost ripple"><i class="fas fa-book"></i> View Documentation</a>
-      </div>
-    </div>
+  <!-- MAIN -->
+  <main class="main" id="mainContent"></main>
 
-    <div class="section-divider">
-      <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-        <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="#0d0d18"/>
-      </svg>
-    </div>
-  </section>
+</div>
 
-  <!-- STATS -->
-  <section class="stats-section" id="stats">
-    <div class="container">
-      <div class="stats-grid">
-        <div class="stat-card" data-aos="fade-up" data-aos-delay="0">
-          <div class="stat-icon"><i class="fas fa-code-branch"></i></div>
-          <div class="stat-num" data-count="2">0</div>
-          <div class="stat-label">Total APIs</div>
-        </div>
-        <div class="stat-card" data-aos="fade-up" data-aos-delay="100">
-          <div class="stat-icon"><i class="fas fa-bolt"></i></div>
-          <div class="stat-num" data-count="1000000">0</div>
-          <div class="stat-label">Total Requests</div>
-        </div>
-        <div class="stat-card" data-aos="fade-up" data-aos-delay="200">
-          <div class="stat-icon"><i class="fas fa-shield-halved"></i></div>
-          <div class="stat-num" data-count="99" data-suffix="%">0</div>
-          <div class="stat-label">Uptime</div>
-        </div>
-        <div class="stat-card" data-aos="fade-up" data-aos-delay="300">
-          <div class="stat-icon"><i class="fas fa-users"></i></div>
-          <div class="stat-num" data-count="5000">0</div>
-          <div class="stat-label">Active Users</div>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- FEATURES -->
-  <section class="features-section" id="features">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Platform</div>
-        <h2 class="section-title">Why Choose <span class="gradient-text">SELORA API</span></h2>
-        <p class="section-desc">Platform API terpercaya dengan infrastruktur modern dan developer experience terbaik.</p>
-      </div>
-      <div class="features-grid">
-        <div class="feature-card" data-aos="fade-up" data-aos-delay="0">
-          <div class="feature-icon"><i class="fas fa-gauge-high"></i></div>
-          <h3>High Performance</h3>
-          <p>Infrastruktur edge computing modern dengan latensi sangat rendah untuk setiap request.</p>
-        </div>
-        <div class="feature-card" data-aos="fade-up" data-aos-delay="80">
-          <div class="feature-icon"><i class="fas fa-bolt"></i></div>
-          <h3>Fast Response</h3>
-          <p>Response time rata-rata di bawah 120ms dengan sistem caching multi-layer canggih.</p>
-        </div>
-        <div class="feature-card" data-aos="fade-up" data-aos-delay="160">
-          <div class="feature-icon"><i class="fas fa-lock"></i></div>
-          <h3>Secure System</h3>
-          <p>Enkripsi end-to-end dan proteksi DDoS untuk menjaga keamanan setiap transaksi data.</p>
-        </div>
-        <div class="feature-card" data-aos="fade-up" data-aos-delay="240">
-          <div class="feature-icon"><i class="fas fa-plug"></i></div>
-          <h3>Easy Integration</h3>
-          <p>SDK dan dokumentasi lengkap untuk semua bahasa pemrograman populer.</p>
-        </div>
-        <div class="feature-card" data-aos="fade-up" data-aos-delay="320">
-          <div class="feature-icon"><i class="fas fa-server"></i></div>
-          <h3>24/7 Uptime</h3>
-          <p>SLA 99.9% uptime dengan monitoring realtime dan auto-recovery system.</p>
-        </div>
-        <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
-          <div class="feature-icon"><i class="fas fa-code"></i></div>
-          <h3>Developer Friendly</h3>
-          <p>API design yang intuitif, RESTful, dengan dokumentasi interaktif dan live tester.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- APIS -->
-  <section class="apis-section" id="apis">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Catalog</div>
-        <h2 class="section-title">Available <span class="gradient-text">APIs</span></h2>
-        <p class="section-desc">Koleksi API modern siap pakai dengan dokumentasi lengkap.</p>
-      </div>
-      <div class="api-search-bar" data-aos="fade-up" data-aos-delay="100">
-        <i class="fas fa-search"></i>
-        <input type="text" id="apiSearch" placeholder="Search APIs..." />
-      </div>
-      <div class="api-filters" data-aos="fade-up" data-aos-delay="150">
-        <button class="filter-btn active" data-filter="all">All</button>
-        <button class="filter-btn" data-filter="ai">Artificial Intelligence</button>
-        <button class="filter-btn" data-filter="media">Media Downloader</button>
-      </div>
-      <div class="api-grid" id="apiGrid">
-
-        <!-- AI Chat API Card -->
-        <div class="api-card" data-aos="fade-up" data-aos-delay="200" data-category="ai">
-          <div class="api-card-top-border"></div>
-          <div class="api-card-header">
-            <div class="api-icon ai-icon"><i class="fas fa-brain"></i></div>
-            <div class="api-status-badge"><span class="pulse-dot green"></span> Online</div>
-          </div>
-          <h3 class="api-name">AI Chat API</h3>
-          <p class="api-desc">API AI modern untuk chatbot, assistant, auto reply, dan integrasi kecerdasan buatan.</p>
-          <div class="api-meta">
-            <div class="meta-item"><span class="meta-label">Method</span><span class="meta-val method-get">GET</span></div>
-            <div class="meta-item"><span class="meta-label">Response</span><span class="meta-val">120ms</span></div>
-            <div class="meta-item"><span class="meta-label">Limit</span><span class="meta-val">Unlimited</span></div>
-            <div class="meta-item"><span class="meta-label">Category</span><span class="meta-val">AI</span></div>
-          </div>
-          <div class="api-endpoint">
-            <code id="ep-ai">/response?message=halo</code>
-            <button class="copy-btn ripple" onclick="copyEndpoint('ep-ai', this)"><i class="fas fa-copy"></i></button>
-          </div>
-          <div class="api-actions">
-            <button class="btn btn-primary btn-sm ripple" onclick="openTester('ai')"><i class="fas fa-play"></i> Try It Live</button>
-            <button class="btn btn-ghost btn-sm ripple" onclick="openDocs('fetch')"><i class="fas fa-book"></i> View Docs</button>
-            <a class="btn btn-ghost btn-sm ripple" 
-   href="https://www.poly-md.my.id/response?message=hi&username=user">
-    <i class="fas fa-book"></i> Endpoint
-</a>
-          </div>
-        </div>
-
-        <!-- TikTok Downloader API Card -->
-        <div class="api-card" data-aos="fade-up" data-aos-delay="300" data-category="media">
-          <div class="api-card-top-border"></div>
-          <div class="api-card-header">
-            <div class="api-icon tiktok-icon"><i class="fab fa-tiktok"></i></div>
-            <div class="api-status-badge"><span class="pulse-dot green"></span> Online</div>
-          </div>
-          <h3 class="api-name">TikTok Downloader API</h3>
-          <p class="api-desc">API downloader video TikTok cepat tanpa watermark dengan dukungan resolusi HD.</p>
-          <div class="api-meta">
-            <div class="meta-item"><span class="meta-label">Method</span><span class="meta-val method-get">GET</span></div>
-            <div class="meta-item"><span class="meta-label">Response</span><span class="meta-val">95ms</span></div>
-            <div class="meta-item"><span class="meta-label">Limit</span><span class="meta-val">10K/day</span></div>
-            <div class="meta-item"><span class="meta-label">Category</span><span class="meta-val">Media</span></div>
-          </div>
-          <div class="api-endpoint">
-            <code id="ep-tiktok">/tiktok?url=https://...</code>
-            <button class="copy-btn ripple" onclick="copyEndpoint('ep-tiktok', this)"><i class="fas fa-copy"></i></button>
-          </div>
-          <div class="api-actions">
-            <button class="btn btn-primary btn-sm ripple" onclick="openTester('tiktok')"><i class="fas fa-play"></i> Try It Live</button>
-            <button class="btn btn-ghost btn-sm ripple" onclick="openDocs('tiktok')"><i class="fas fa-book"></i> View Docs</button>
-            <a class="btn btn-ghost btn-sm ripple" 
-   href="https://www.poly-md.my.id/tiktok?url=https://vt.tiktok.com/...">
-    <i class="fas fa-book"></i> Endpoint
-</a>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- LIVE TESTER -->
-  <section class="tester-section" id="tester">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Interactive</div>
-        <h2 class="section-title">Live API <span class="gradient-text">Tester</span></h2>
-        <p class="section-desc">Uji API langsung di browser tanpa perlu tools tambahan.</p>
-      </div>
-
-      <!-- API Type Switcher -->
-      <div class="tester-api-tabs" data-aos="fade-up" data-aos-delay="100">
-        <button class="tester-api-tab active" id="tab-ai-btn" onclick="switchTesterTab('ai')">
-          <span class="tab-dot"></span>
-          <i class="fas fa-brain"></i> AI Chat API
-        </button>
-        <button class="tester-api-tab" id="tab-tt-btn" onclick="switchTesterTab('tiktok')">
-          <span class="tab-dot"></span>
-          <i class="fab fa-tiktok"></i> TikTok Downloader
-        </button>
-      </div>
-
-      <!-- AI Chat Panel -->
-      <div class="tester-panel active" id="panel-ai" data-aos="fade-up" data-aos-delay="150">
-        <div class="tester-wrapper">
-          <div class="tester-input-area">
-            <div class="tester-url-bar">
-              <span class="method-badge">GET</span>
-              <span class="base-url">poly-md.my.id/response?message=pesan&username=user</span>
-            </div>
-            <div class="tester-form">
-              <div class="form-group">
-                <label>Message Parameter</label>
-                <input type="text" id="aiTesterInput" placeholder="Ketik pesan untuk AI..." value="halo" />
-              </div>
-              <button class="btn btn-primary btn-glow ripple" id="sendAiBtn">
-                <i class="fas fa-paper-plane"></i> Send Request
-              </button>
-            </div>
-          </div>
-          <div class="tester-output-area">
-            <div class="terminal-header">
-              <div class="terminal-dots">
-                <span class="tdot red"></span><span class="tdot yellow"></span><span class="tdot green"></span>
-              </div>
-              <span class="terminal-title">Response — AI Chat</span>
-              <button class="copy-btn" id="copyAiResponseBtn" style="margin-left:auto;"><i class="fas fa-copy"></i> Copy</button>
-            </div>
-            <div class="terminal-body" id="aiTerminalBody">
-              <div class="terminal-placeholder">
-                <i class="fas fa-brain"></i>
-                <p>Ketik pesan lalu klik<br><strong>Send Request</strong></p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TikTok Downloader Panel -->
-      <div class="tester-panel" id="panel-tiktok">
-        <div class="tester-wrapper">
-          <div class="tester-input-area">
-            <div class="tester-url-bar">
-              <span class="method-badge">GET</span>
-              <span class="base-url">poly-md.my.id/tiktok?url=</span>
-            </div>
-            <div class="tester-form">
-              <div class="form-group">
-                <label>TikTok Video URL</label>
-                <input type="text" id="ttTesterInput" placeholder="https://www.tiktok.com/@user/video/..." />
-                <span class="input-hint">Contoh: <code>https://vt.tiktok.com/ZSjXxxxxx/</code></span>
-              </div>
-              <button class="btn btn-primary btn-glow ripple" id="sendTtBtn" style="background: linear-gradient(135deg,#fe2c55,#a81c34);">
-                <i class="fab fa-tiktok"></i> Download Video
-              </button>
-            </div>
-          </div>
-          <div class="tester-output-area">
-            <div class="terminal-header">
-              <div class="terminal-dots">
-                <span class="tdot red"></span><span class="tdot yellow"></span><span class="tdot green"></span>
-              </div>
-              <span class="terminal-title">Response — TikTok Downloader</span>
-              <button class="copy-btn" id="copyTtResponseBtn" style="margin-left:auto;"><i class="fas fa-copy"></i> Copy</button>
-            </div>
-            <div class="terminal-body" id="ttTerminalBody">
-              <div class="terminal-placeholder">
-                <i class="fab fa-tiktok"></i>
-                <p>Masukkan URL TikTok<br>lalu klik <strong>Download Video</strong></p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- DOCS -->
-  <section class="docs-section" id="docs">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Reference</div>
-        <h2 class="section-title">Documentation <span class="gradient-text">Preview</span></h2>
-        <p class="section-desc">Contoh integrasi API dalam berbagai bahasa dan framework.</p>
-      </div>
-      <div class="docs-tabs" data-aos="fade-up" data-aos-delay="100">
-        <button class="doc-tab active" data-tab="fetch">Fetch API</button>
-        <button class="doc-tab" data-tab="axios">Axios</button>
-        <button class="doc-tab" data-tab="tiktok">TikTok</button>
-        <button class="doc-tab" data-tab="response">Response</button>
-      </div>
-      <div class="code-blocks" data-aos="fade-up" data-aos-delay="200">
-        <div class="code-block active" id="tab-fetch">
-          <div class="code-header">
-            <span class="code-lang">JavaScript — Fetch API</span>
-            <button class="copy-btn ripple" onclick="copyCode('code-fetch', this)"><i class="fas fa-copy"></i> Copy</button>
-          </div>
-          <pre id="code-fetch"><code><span class="kw">fetch</span>(<span class="str">"https://www.poly-md.my.id/response?message=halo&username=user"</span>)
-  .<span class="fn">then</span>(res =&gt; res.<span class="fn">json</span>())
-  .<span class="fn">then</span>(data =&gt; <span class="fn">console</span>.<span class="fn">log</span>(data))
-  .<span class="fn">catch</span>(err =&gt; <span class="fn">console</span>.<span class="fn">error</span>(<span class="str">"Error:"</span>, err));</code></pre>
-        </div>
-        <div class="code-block" id="tab-axios">
-          <div class="code-header">
-            <span class="code-lang">JavaScript — Axios</span>
-            <button class="copy-btn ripple" onclick="copyCode('code-axios', this)"><i class="fas fa-copy"></i> Copy</button>
-          </div>
-          <pre id="code-axios"><code><span class="kw">import</span> axios <span class="kw">from</span> <span class="str">'axios'</span>;
-
-axios.<span class="fn">get</span>(<span class="str">"https://www.poly-md.my.id/response?message=halo"</span>)
-  .<span class="fn">then</span>(res =&gt; <span class="fn">console</span>.<span class="fn">log</span>(res.data))
-  .<span class="fn">catch</span>(err =&gt; <span class="fn">console</span>.<span class="fn">error</span>(<span class="str">"Error:"</span>, err));</code></pre>
-        </div>
-        <div class="code-block" id="tab-tiktok">
-          <div class="code-header">
-            <span class="code-lang">JavaScript — TikTok Downloader</span>
-            <button class="copy-btn ripple" onclick="copyCode('code-tiktok', this)"><i class="fas fa-copy"></i> Copy</button>
-          </div>
-          <pre id="code-tiktok"><code><span class="cm">// TikTok Downloader API</span>
-<span class="kw">const</span> videoUrl = <span class="str">"https://www.tiktok.com/@user/video/123456789"</span>;
-
-<span class="kw">fetch</span>(<span class="str">`https://www.poly-md.my.id/tiktok?url=<span class="tmpl">${videoUrl}</span>`</span>)
-  .<span class="fn">then</span>(res =&gt; res.<span class="fn">json</span>())
-  .<span class="fn">then</span>(data =&gt; {
-    <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Video URL:"</span>, data.result.videoUrl);
-    <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"No Watermark:"</span>, data.result.noWatermark);
-  });</code></pre>
-        </div>
-        <div class="code-block" id="tab-response">
-          <div class="code-header">
-            <span class="code-lang">JSON — Example Response</span>
-            <button class="copy-btn ripple" onclick="copyCode('code-response', this)"><i class="fas fa-copy"></i> Copy</button>
-          </div>
-          <pre id="code-response"><code>{
-  <span class="key">"status"</span>: <span class="str">"success"</span>,
-  <span class="key">"code"</span>: <span class="num">200</span>,
-  <span class="key">"result"</span>: {
-    <span class="key">"message"</span>: <span class="str">"Halo! Saya adalah AI assistant. Ada yang bisa saya bantu?"</span>,
-    <span class="key">"model"</span>: <span class="str">"selora-v1"</span>,
-    <span class="key">"timestamp"</span>: <span class="str">"2026-01-01T00:00:00Z"</span>
-  }
-}</code></pre>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- PRICING -->
-  <section class="pricing-section" id="pricing">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Plans</div>
-        <h2 class="section-title">Simple <span class="gradient-text">Pricing</span></h2>
-        <p class="section-desc">Pilih paket yang sesuai dengan kebutuhan proyek Anda.</p>
-      </div>
-      <div class="pricing-grid">
-        <div class="pricing-card" data-aos="fade-up" data-aos-delay="0">
-          <div class="pricing-header">
-            <div class="plan-icon"><i class="fas fa-leaf"></i></div>
-            <div class="plan-name">Free</div>
-            <div class="plan-price"><span class="price-currency">Rp</span><span class="price-amount">0</span><span class="price-period">/mo</span></div>
-          </div>
-          <ul class="plan-features">
-            <li><i class="fas fa-check"></i> 1.000 requests/day</li>
-            <li><i class="fas fa-check"></i> Access to 2 APIs</li>
-            <li><i class="fas fa-check"></i> Basic documentation</li>
-            <li><i class="fas fa-check"></i> Community support</li>
-            <li class="disabled"><i class="fas fa-times"></i> Priority support</li>
-            <li class="disabled"><i class="fas fa-times"></i> Custom rate limits</li>
-          </ul>
-          <a href="#" class="btn btn-ghost ripple">Get Started Free</a>
-        </div>
-        <div class="pricing-card featured" data-aos="fade-up" data-aos-delay="150">
-          <div class="featured-badge">Most Popular</div>
-          <div class="pricing-header">
-            <div class="plan-icon"><i class="fas fa-bolt"></i></div>
-            <div class="plan-name">Pro</div>
-            <div class="plan-price"><span class="price-currency">Rp</span><span class="price-amount">99K</span><span class="price-period">/mo</span></div>
-          </div>
-          <ul class="plan-features">
-            <li><i class="fas fa-check"></i> 100.000 requests/day</li>
-            <li><i class="fas fa-check"></i> All APIs included</li>
-            <li><i class="fas fa-check"></i> Full documentation</li>
-            <li><i class="fas fa-check"></i> Priority email support</li>
-            <li><i class="fas fa-check"></i> Analytics dashboard</li>
-            <li class="disabled"><i class="fas fa-times"></i> Custom rate limits</li>
-          </ul>
-          <a href="#" class="btn btn-primary btn-glow ripple">Get Pro</a>
-        </div>
-        <div class="pricing-card" data-aos="fade-up" data-aos-delay="300">
-          <div class="pricing-header">
-            <div class="plan-icon"><i class="fas fa-building"></i></div>
-            <div class="plan-name">Enterprise</div>
-            <div class="plan-price"><span class="price-amount">Custom</span></div>
-          </div>
-          <ul class="plan-features">
-            <li><i class="fas fa-check"></i> Unlimited requests</li>
-            <li><i class="fas fa-check"></i> All APIs + custom</li>
-            <li><i class="fas fa-check"></i> Dedicated support</li>
-            <li><i class="fas fa-check"></i> SLA guarantee</li>
-            <li><i class="fas fa-check"></i> Custom rate limits</li>
-            <li><i class="fas fa-check"></i> On-premise option</li>
-          </ul>
-          <a href="#contact" class="btn btn-ghost ripple">Contact Sales</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- TESTIMONIALS -->
-  <section class="testimonials-section" id="testimonials">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Reviews</div>
-        <h2 class="section-title">Developer <span class="gradient-text">Stories</span></h2>
-      </div>
-      <div class="testimonial-slider" data-aos="fade-up" data-aos-delay="100">
-        <div class="testimonial-track" id="testimonialTrack">
-          <div class="testimonial-card">
-            <div class="testi-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-            <p>"SELORA API sangat mudah diintegrasikan. AI Chat API-nya responsif dan akurat. Cocok banget buat project chatbot kami."</p>
-            <div class="testi-author"><div class="testi-avatar">AK</div><div><div class="testi-name">Arief Kurniawan</div><div class="testi-role">Backend Developer</div></div></div>
-          </div>
-          <div class="testimonial-card">
-            <div class="testi-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-            <p>"TikTok Downloader API-nya kenceng banget, no watermark, HD quality. Persis yang aku butuhkan untuk app media downloader."</p>
-            <div class="testi-author"><div class="testi-avatar">RS</div><div><div class="testi-name">Rina Salsabila</div><div class="testi-role">Full-stack Developer</div></div></div>
-          </div>
-          <div class="testimonial-card">
-            <div class="testi-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-            <p>"Dokumentasi lengkap dan live tester bikin onboarding jadi super cepat. Platform paling developer-friendly yang pernah aku pakai."</p>
-            <div class="testi-author"><div class="testi-avatar">DP</div><div><div class="testi-name">Dika Pratama</div><div class="testi-role">Mobile Developer</div></div></div>
-          </div>
-          <div class="testimonial-card">
-            <div class="testi-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-            <p>"Uptime 99.9% bukan cuma klaim, tapi beneran. Sudah 3 bulan pakai SELORA API, belum pernah downtime sekalipun."</p>
-            <div class="testi-author"><div class="testi-avatar">NF</div><div><div class="testi-name">Naufal Farhan</div><div class="testi-role">DevOps Engineer</div></div></div>
-          </div>
-        </div>
-        <div class="slider-controls">
-          <button class="slider-btn" id="sliderPrev"><i class="fas fa-chevron-left"></i></button>
-          <div class="slider-dots" id="sliderDots"></div>
-          <button class="slider-btn" id="sliderNext"><i class="fas fa-chevron-right"></i></button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FAQ -->
-  <section class="faq-section" id="faq">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Help</div>
-        <h2 class="section-title">Frequently Asked <span class="gradient-text">Questions</span></h2>
-      </div>
-      <div class="faq-list" data-aos="fade-up" data-aos-delay="100">
-        <div class="faq-item">
-          <button class="faq-question">Bagaimana cara menggunakan API?<i class="fas fa-chevron-down faq-icon"></i></button>
-          <div class="faq-answer"><p>Cukup lakukan HTTP GET request ke endpoint yang tersedia. Contoh: <code>GET https://www.poly-md.my.id/response?message=halo</code>. Response akan dikembalikan dalam format JSON.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-question">Bagaimana mendapatkan API key?<i class="fas fa-chevron-down faq-icon"></i></button>
-          <div class="faq-answer"><p>Saat ini beberapa endpoint tersedia secara gratis tanpa API key. Untuk akses Pro dan Enterprise dengan fitur lebih lengkap, hubungi kami melalui halaman Contact.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-question">Apakah ada rate limit?<i class="fas fa-chevron-down faq-icon"></i></button>
-          <div class="faq-answer"><p>Free plan: 1.000 requests/day. Pro plan: 100.000 requests/day. Enterprise: unlimited. TikTok Downloader API memiliki limit 10.000 requests/day untuk semua plan.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-question">Apakah tersedia dokumentasi lengkap?<i class="fas fa-chevron-down faq-icon"></i></button>
-          <div class="faq-answer"><p>Ya, setiap API memiliki dokumentasi lengkap dengan contoh kode dalam berbagai bahasa (JavaScript, Python, PHP, dll.), schema request/response, dan error code reference.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-question">Format response API seperti apa?<i class="fas fa-chevron-down faq-icon"></i></button>
-          <div class="faq-answer"><p>Semua API mengembalikan response dalam format JSON standar dengan field <code>status</code>, <code>code</code>, dan <code>result</code>. Lihat tab Documentation Preview untuk contoh response lengkap.</p></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CONTACT -->
-  <section class="contact-section" id="contact">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <div class="section-tag">Connect</div>
-        <h2 class="section-title">Get In <span class="gradient-text">Touch</span></h2>
-        <p class="section-desc">Ada pertanyaan? Tim kami siap membantu 24/7.</p>
-      </div>
-      <div class="contact-grid" data-aos="fade-up" data-aos-delay="100">
-        <div class="contact-card">
-          <div class="contact-icon"><i class="fas fa-envelope"></i></div>
-          <div class="contact-info"><div class="contact-label">Email Support</div><a href="mailto:support@seloraapi.com" class="contact-val">support@seloraapi.com</a></div>
-        </div>
-        <div class="contact-card">
-          <div class="contact-icon"><i class="fab fa-discord"></i></div>
-          <div class="contact-info"><div class="contact-label">Discord Community</div><a href="#" class="contact-val">Join Discord Server</a></div>
-        </div>
-        <div class="contact-card">
-          <div class="contact-icon"><i class="fab fa-whatsapp"></i></div>
-          <div class="contact-info"><div class="contact-label">WhatsApp</div><a href="#" class="contact-val">Chat on WhatsApp</a></div>
-        </div>
-        <div class="contact-card">
-          <div class="contact-icon"><i class="fab fa-github"></i></div>
-          <div class="contact-info"><div class="contact-label">GitHub</div><a href="#" class="contact-val">View Source Code</a></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FOOTER -->
-  <footer class="footer" id="footer">
-    <div class="footer-glow"></div>
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="footer-logo">SELORA <span>API</span></div>
-          <p>Platform API modern untuk developer Indonesia. Fast, reliable, and always online.</p>
-          <div class="footer-socials">
-            <a href="https://www.instagram.com/@luttheww" class="fsocial"><i class="fab fa-instagram"></i></a>
-            <a href="https://github.com/" class="fsocial"><i class="fab fa-github"></i></a>
-            <a href="https://www.tiktok.com/@_j1njuuonrblx" class="fsocial"><i class="fab fa-tiktok"></i></a>
-            <a href="https://discord.gg/" class="fsocial"><i class="fab fa-discord"></i></a>
-          </div>
-        </div>
-        <div class="footer-col">
-          <h4>Quick Links</h4>
-          <ul>
-            <li><a href="#home">Home</a></li>
-            <li><a href="#features">Features</a></li>
-            <li><a href="#pricing">Pricing</a></li>
-            <li><a href="#faq">FAQ</a></li>
-            <li><a href="#contact">Contact</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>APIs</h4>
-          <ul>
-            <li><a href="#apis">AI Chat API</a></li>
-            <li><a href="#apis">TikTok Downloader</a></li>
-            <li><a href="#docs">Documentation</a></li>
-            <li><a href="#tester">API Tester</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Legal</h4>
-          <ul>
-            <li><a href="#">Terms of Service</a></li>
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">API Usage Policy</a></li>
-            <li><a href="#">Cookie Policy</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-divider"></div>
-      <div class="footer-bottom">
-        <div class="footer-copy">&copy; 2026 SELORA API. All rights reserved.</div>
-        <div class="footer-status"><span class="pulse-dot green small"></span> All systems operational</div>
-      </div>
-    </div>
-  </footer>
-
-  <button class="scroll-top" id="scrollTop" aria-label="Scroll to top"><i class="fas fa-chevron-up"></i></button>
-  <div class="toast-container" id="toastContainer"></div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
 
 <script>
 /* ============================================================
-   SELORA API — JavaScript (Fixed + Enhanced)
+   KONFIGURASI DEFAULT — nilai awal. Setelah dijalankan, base URL
+   dan daftar endpoint sepenuhnya bisa diatur lewat panel "Config"
+   di sidebar (tersimpan otomatis di localStorage browser).
    ============================================================ */
+const DEFAULT_API_BASE_URL = "https://www.poly-md.my.id";
 
-const CONFIG = {
-  apiBaseUrl: "https://www.poly-md.my.id",
-  endpoints: { aiChat: "/response", tiktok: "/tiktok" }
-};
-
-document.addEventListener("DOMContentLoaded", () => {
-  initLoader();
-  initCursorGlow();
-  initScrollProgress();
-  initNavbar();
-  initMobileMenu();
-  initParticles();
-  initRipple();
-  initScrollTop();
-  initFAQ();
-  initDocsTabs();
-  initAITester();
-  initTikTokTester();
-  initAPIFilters();
-  initAPISearch();
-  initTestimonialSlider();
-  initCounters();
-  AOS.init({ duration: 700, easing: "ease-out-cubic", once: true, offset: 60 });
-});
-
-/* ─── LOADER ─── */
-function initLoader() {
-  const loader = document.getElementById("loader");
-  document.body.style.overflow = "hidden";
-  window.addEventListener("load", () => {
-    setTimeout(() => { loader.classList.add("hidden"); document.body.style.overflow = ""; }, 1200);
-  });
-}
-
-/* ─── CURSOR GLOW ─── */
-function initCursorGlow() {
-  const glow = document.getElementById("cursorGlow");
-  let mx = 0, my = 0, gx = 0, gy = 0;
-  document.addEventListener("mousemove", e => { mx = e.clientX; my = e.clientY; });
-  (function animate() {
-    gx += (mx - gx) * 0.08; gy += (my - gy) * 0.08;
-    glow.style.left = gx + "px"; glow.style.top = gy + "px";
-    requestAnimationFrame(animate);
-  })();
-}
-
-/* ─── SCROLL PROGRESS ─── */
-function initScrollProgress() {
-  const bar = document.getElementById("scrollProgress");
-  window.addEventListener("scroll", () => {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    bar.style.width = (window.scrollY / max * 100) + "%";
-  });
-}
-
-/* ─── NAVBAR ─── */
-function initNavbar() {
-  const navbar = document.getElementById("navbar");
-  const links = document.querySelectorAll(".nav-link");
-  const sections = document.querySelectorAll("section[id]");
-  window.addEventListener("scroll", () => {
-    navbar.classList.toggle("scrolled", window.scrollY > 50);
-    let current = "";
-    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
-    links.forEach(l => { l.classList.toggle("active", l.getAttribute("href") === "#" + current); });
-  });
-  // Smooth scroll for all anchor links
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener("click", e => {
-      const href = a.getAttribute("href");
-      if (!href || href === "#") return;
-      const target = document.querySelector(href);
-      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: "smooth" }); closeMobileMenu(); }
-    });
-  });
-}
-
-/* ─── MOBILE MENU ─── */
-function initMobileMenu() {
-  const hamburger = document.getElementById("hamburger");
-  const sidebar = document.getElementById("mobileSidebar");
-  const overlay = document.getElementById("sidebarOverlay");
-  hamburger.addEventListener("click", () => {
-    hamburger.classList.toggle("open");
-    sidebar.classList.toggle("open");
-    overlay.classList.toggle("open");
-    document.body.style.overflow = sidebar.classList.contains("open") ? "hidden" : "";
-  });
-  overlay.addEventListener("click", closeMobileMenu);
-}
-function closeMobileMenu() {
-  document.getElementById("hamburger").classList.remove("open");
-  document.getElementById("mobileSidebar").classList.remove("open");
-  document.getElementById("sidebarOverlay").classList.remove("open");
-  document.body.style.overflow = "";
-}
-
-/* ─── PARTICLES ─── */
-function initParticles() {
-  const canvas = document.getElementById("particlesCanvas");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  const particles = [];
-  function resize() { canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight; }
-  resize(); window.addEventListener("resize", resize);
-  for (let i = 0; i < 80; i++) {
-    particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4, r: Math.random() * 1.5 + 0.5, a: Math.random() * 0.5 + 0.1 });
+const DEFAULT_ENDPOINTS = [
+  {
+    id: "ai-chat",
+    category: "Artificial Intelligence",
+    name: "AI Chat",
+    method: "GET",
+    path: "/response",
+    description: "Kirim sebuah pesan dan terima balasan dari model AI Hikaru. Cocok untuk chatbot, auto-reply, atau asisten percakapan.",
+    params: [
+      { name: "message", required: true, placeholder: "halo, apa kabar?" },
+      { name: "username", required: false, placeholder: "user" }
+    ],
+    render: "json"
+  },
+  {
+    id: "tiktok-downloader",
+    category: "Media Downloader",
+    name: "TikTok Downloader",
+    method: "GET",
+    path: "/tiktok",
+    description: "Ambil tautan unduhan video TikTok tanpa watermark beserta metadata (judul, kreator, thumbnail).",
+    params: [
+      { name: "url", required: true, placeholder: "https://vt.tiktok.com/ZSjXXXXX/" }
+    ],
+    render: "tiktok"
   }
-  (function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => {
-      p.x += p.vx; p.y += p.vy;
-      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(99,102,241,${p.a})`; ctx.fill();
-    });
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 100) {
-          ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = `rgba(99,102,241,${0.12*(1-dist/100)})`; ctx.lineWidth = 0.5; ctx.stroke();
-        }
-      }
-    }
-    requestAnimationFrame(draw);
-  })();
-}
+];
 
-/* ─── RIPPLE ─── */
-function initRipple() {
-  document.querySelectorAll(".ripple").forEach(btn => {
-    btn.addEventListener("click", function(e) {
-      const rect = this.getBoundingClientRect();
-      const ripple = document.createElement("span");
-      ripple.className = "ripple-effect";
-      ripple.style.cssText = `left:${e.clientX-rect.left}px;top:${e.clientY-rect.top}px;width:10px;height:10px;margin:-5px;`;
-      this.appendChild(ripple);
-      setTimeout(() => ripple.remove(), 600);
-    });
+/* ============================================================
+   STORAGE — base URL & daftar endpoint dibaca dari localStorage
+   kalau sudah pernah disimpan lewat panel Config.
+   ============================================================ */
+function loadBaseUrl(){
+  return localStorage.getItem("hikaru_base_url") || DEFAULT_API_BASE_URL;
+}
+function loadEndpoints(){
+  try{
+    const raw = localStorage.getItem("hikaru_endpoints");
+    if(raw){ const parsed = JSON.parse(raw); if(Array.isArray(parsed) && parsed.length) return parsed; }
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_ENDPOINTS));
+}
+function persistBaseUrl(url){ API_BASE_URL = url; localStorage.setItem("hikaru_base_url", url); }
+function persistEndpoints(){ localStorage.setItem("hikaru_endpoints", JSON.stringify(ENDPOINTS)); }
+
+let API_BASE_URL = loadBaseUrl();
+let ENDPOINTS = loadEndpoints();
+
+/* ============================================================
+   RENDER STATE
+   ============================================================ */
+let activeId = ENDPOINTS[0].id;
+let editingEndpointId = null;
+
+function groupByCategory(list){
+  const map = new Map();
+  list.forEach(ep => {
+    if(!map.has(ep.category)) map.set(ep.category, []);
+    map.get(ep.category).push(ep);
   });
+  return map;
 }
 
-/* ─── SCROLL TOP ─── */
-function initScrollTop() {
-  const btn = document.getElementById("scrollTop");
-  window.addEventListener("scroll", () => btn.classList.toggle("visible", window.scrollY > 400));
-  btn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
-}
-
-/* ─── FAQ ─── */
-function initFAQ() {
-  document.querySelectorAll(".faq-question").forEach(btn => {
-    btn.addEventListener("click", function() {
-      const item = this.closest(".faq-item");
-      const answer = item.querySelector(".faq-answer");
-      const isOpen = item.classList.contains("open");
-      document.querySelectorAll(".faq-item.open").forEach(i => { i.classList.remove("open"); i.querySelector(".faq-answer").classList.remove("open"); });
-      if (!isOpen) { item.classList.add("open"); answer.classList.add("open"); }
-    });
-  });
-}
-
-/* ─── DOCS TABS ─── */
-function initDocsTabs() {
-  const tabs = document.querySelectorAll(".doc-tab");
-  const blocks = document.querySelectorAll(".code-block");
-  tabs.forEach(tab => {
-    tab.addEventListener("click", function() {
-      tabs.forEach(t => t.classList.remove("active"));
-      blocks.forEach(b => b.classList.remove("active"));
-      this.classList.add("active");
-      const t = document.getElementById("tab-" + this.dataset.tab);
-      if (t) t.classList.add("active");
-    });
-  });
-}
-
-/* ─── TESTER TAB SWITCHER ─── */
-function switchTesterTab(api) {
-  document.querySelectorAll(".tester-api-tab").forEach(t => t.classList.remove("active"));
-  document.querySelectorAll(".tester-panel").forEach(p => p.classList.remove("active"));
-  document.getElementById("tab-" + (api === "ai" ? "ai" : "tt") + "-btn").classList.add("active");
-  document.getElementById("panel-" + api).classList.add("active");
-}
-
-/* ─── openTester: called by "Try It Live" buttons ─── */
-function openTester(api) {
-  switchTesterTab(api);
-  const testerSection = document.getElementById("tester");
-  if (testerSection) {
-    testerSection.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-}
-
-/* ─── openDocs: called by "View Docs" buttons ─── */
-function openDocs(tab) {
-  // Switch the correct docs tab
-  document.querySelectorAll(".doc-tab").forEach(t => t.classList.remove("active"));
-  document.querySelectorAll(".code-block").forEach(b => b.classList.remove("active"));
-  const tabBtn = document.querySelector(`.doc-tab[data-tab="${tab}"]`);
-  const tabBlock = document.getElementById("tab-" + tab);
-  if (tabBtn) tabBtn.classList.add("active");
-  if (tabBlock) tabBlock.classList.add("active");
-  // Scroll to docs section
-  const docsSection = document.getElementById("docs");
-  if (docsSection) {
-    docsSection.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-}
-
-/* ─── AI CHAT TESTER ─── */
-function initAITester() {
-  const btn = document.getElementById("sendAiBtn");
-  const input = document.getElementById("aiTesterInput");
-  const body = document.getElementById("aiTerminalBody");
-  const copyBtn = document.getElementById("copyAiResponseBtn");
-  let lastResponse = "";
-
-  btn.addEventListener("click", async () => {
-    const msg = input.value.trim() || "halo";
-    const url = `${CONFIG.apiBaseUrl}${CONFIG.endpoints.aiChat}?message=${encodeURIComponent(msg)}`;
-    body.innerHTML = `<div class="terminal-loading"><div class="spinner-sm"></div><span>Sending request to AI...</span></div>`;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sending...';
-    try {
-  const res = await fetch(url);
-  const data = await res.json();
-
-  lastResponse = data.result || data.response || data.message || data.generated_text || data.text || "No response.";
-
-  body.innerHTML = `
-    <div style="margin-bottom:12px;font-size:0.75rem;color:var(--text-dim)">
-      <span style="color:var(--green)">HTTP ${res.status}</span>
-      &nbsp;·&nbsp;
-      ${new Date().toLocaleTimeString()}
-      &nbsp;·&nbsp; AI Chat API
-    </div>
-
-    <div class="json-output">${lastResponse}</div>
-  `;
-
-  showToast("success", "Response received!");
-
-} catch (err) {
-      lastResponse = JSON.stringify({ error: err.message || "Request failed" }, null, 2);
-      body.innerHTML = `
-        <div style="margin-bottom:12px;font-size:0.75rem;color:var(--red)">ERROR &nbsp;·&nbsp; ${new Date().toLocaleTimeString()}</div>
-        <div class="json-output" style="color:var(--red)">${syntaxHighlight(lastResponse)}</div>`;
-      showToast("error", "Request failed: " + err.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Request';
-    }
-  });
-
-  copyBtn?.addEventListener("click", () => {
-    if (!lastResponse) { showToast("error", "Tidak ada response untuk di-copy"); return; }
-    navigator.clipboard.writeText(lastResponse).then(() => showToast("success", "Response copied!"));
-  });
-  input.addEventListener("keydown", e => { if (e.key === "Enter") btn.click(); });
-}
-
-/* ─── TIKTOK DOWNLOADER TESTER ─── */
-function initTikTokTester() {
-  const btn = document.getElementById("sendTtBtn");
-  const input = document.getElementById("ttTesterInput");
-  const body = document.getElementById("ttTerminalBody");
-  const copyBtn = document.getElementById("copyTtResponseBtn");
-  let lastResponse = "";
-  let lastData = null;
-
-  btn.addEventListener("click", async () => {
-    const url = input.value.trim();
-    if (!url) {
-      showToast("error", "Masukkan URL TikTok terlebih dahulu");
-      input.focus();
-      return;
-    }
-    if (!url.includes("tiktok.com") && !url.includes("vt.tiktok.com")) {
-      showToast("error", "URL tidak valid. Gunakan link TikTok yang benar.");
-      return;
-    }
-
-    const apiUrl = `${CONFIG.apiBaseUrl}${CONFIG.endpoints.tiktok}?url=${encodeURIComponent(url)}`;
-    body.innerHTML = `<div class="terminal-loading"><div class="spinner-sm"></div><span>Fetching TikTok video...</span></div>`;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Fetching...';
-
-    try {
-      const res = await fetch(apiUrl);
-      const data = await res.json();
-      lastResponse = JSON.stringify(data, null, 2);
-      lastData = data;
-
-      // Try to render a nice download UI if response has video links
-      const result = data.result || data.data || data;
-      const hasVideo = result && (result.video || result.videoUrl || result.nowm || result.nowatermark || result.play || result.nwm_video_url || result.hdplay);
-
-      if (data.status === "success" || data.code === 200 || hasVideo) {
-        body.innerHTML = renderTikTokResult(data, result);
-      } else {
-        // Fallback: show raw JSON
-        body.innerHTML = `
-          <div style="margin-bottom:12px;font-size:0.75rem;color:var(--text-dim)">
-            <span style="color:var(--green)">HTTP ${res.status}</span> &nbsp;·&nbsp; ${new Date().toLocaleTimeString()} &nbsp;·&nbsp; TikTok Downloader
-          </div>
-          <div class="json-output">${syntaxHighlight(lastResponse)}</div>`;
-      }
-      showToast("success", "Video info berhasil diambil!");
-    } catch (err) {
-      lastResponse = JSON.stringify({ error: err.message || "Request failed" }, null, 2);
-      body.innerHTML = `
-        <div style="margin-bottom:12px;font-size:0.75rem;color:var(--red)">ERROR &nbsp;·&nbsp; ${new Date().toLocaleTimeString()}</div>
-        <div style="color:var(--text-muted);font-size:0.82rem;margin-bottom:12px;">
-          <i class="fas fa-exclamation-triangle" style="color:var(--red)"></i> 
-          Gagal mengambil video. Pastikan URL TikTok valid dan coba lagi.
-        </div>
-        <div class="json-output" style="color:var(--red)">${syntaxHighlight(lastResponse)}</div>`;
-      showToast("error", "Gagal fetch: " + err.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fab fa-tiktok"></i> Download Video';
-    }
-  });
-
-  copyBtn?.addEventListener("click", () => {
-    if (!lastResponse) { showToast("error", "Tidak ada response untuk di-copy"); return; }
-    navigator.clipboard.writeText(lastResponse).then(() => showToast("success", "Response copied!"));
-  });
-
-  input.addEventListener("keydown", e => { if (e.key === "Enter") btn.click(); });
-}
-
-function renderTikTokResult(data, result) {
-  // Try various common API response shapes
-  const title = result.title || result.desc || result.caption || "TikTok Video";
-  const author = result.author || result.nickname || result.creator || (result.author_info && result.author_info.nickname) || "Unknown";
-  const thumb = result.cover || result.thumbnail || result.origin_cover || result.dynamicCover || "";
-
-  // Collect download links
-  const links = [];
-  const tryLink = (url, label, icon, cls) => { if (url && typeof url === "string" && url.startsWith("http")) links.push({ url, label, icon, cls }); };
-
-  tryLink(result.hdplay || result.hd_video, "Download HD (No Watermark)", "fa-crown", "primary");
-  tryLink(result.nowm || result.noWatermark || result.nwm_video_url || result.play_addr_h264, "Download No Watermark", "fa-download", "secondary");
-  tryLink(result.video || result.videoUrl || result.play, "Download Video", "fa-video", "ghost");
-  tryLink(result.music || result.music_url || result.bgm_info?.play_url, "Download Audio", "fa-music", "ghost");
-
-  let html = `<div class="tt-result">`;
-
-  // Thumbnail
-  if (thumb) {
-    html += `<img src="${thumb}" class="tt-thumb" alt="Thumbnail" onerror="this.style.display='none'">`;
-  }
-
-  // Info
-  html += `<div class="tt-info">
-    <div class="tt-title">${escHtml(title)}</div>
-    <div class="tt-author"><i class="fas fa-user-circle"></i> @${escHtml(String(author))}</div>
-  </div>`;
-
-  // Download buttons
-  if (links.length > 0) {
-    html += `<div class="tt-dl-btns">`;
-    links.forEach(({ url, label, icon, cls }) => {
-      html += `<a href="${url}" target="_blank" rel="noopener" class="tt-dl-btn ${cls}"><i class="fas ${icon}"></i> ${label}</a>`;
+function renderSidebar(filter=""){
+  const tree = document.getElementById("sidebarTree");
+  const q = filter.trim().toLowerCase();
+  const filtered = ENDPOINTS.filter(ep => !q || ep.name.toLowerCase().includes(q) || ep.path.toLowerCase().includes(q));
+  const groups = groupByCategory(filtered);
+  let html = "";
+  groups.forEach((eps, cat) => {
+    html += `<div class="sidebar-group"><div class="sidebar-group-label">${escHtml(cat)}</div>`;
+    eps.forEach(ep => {
+      html += `
+        <div class="node ${ep.id===activeId?'active':''}" data-id="${ep.id}">
+          <span class="node-method ${ep.method.toLowerCase()}">${ep.method}</span>
+          <span class="node-name">${escHtml(ep.name)}</span>
+          <span class="node-pulse"></span>
+        </div>`;
     });
     html += `</div>`;
-  } else {
-    // No recognized links — show raw JSON
-    html += `<div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:8px;">Raw API Response:</div>
-             <div class="json-output" style="font-size:0.75rem;">${syntaxHighlight(JSON.stringify(data, null, 2))}</div>`;
-  }
-
-  html += `</div>`;
-  return html;
+  });
+  tree.innerHTML = html || `<div style="padding:20px 24px;color:var(--ink-faint);font-size:.82rem;">Tidak ditemukan.</div>`;
+  tree.querySelectorAll(".node").forEach(n => {
+    n.addEventListener("click", () => { activeId = n.dataset.id; location.hash = activeId; selectEndpoint(activeId); if(window.innerWidth<=760) closeSidebar(); });
+  });
 }
 
-function escHtml(str) {
+function selectEndpoint(id){
+  const ep = ENDPOINTS.find(e => e.id === id);
+  if(!ep) return;
+  activeId = id;
+  document.querySelectorAll(".node").forEach(n => n.classList.toggle("active", n.dataset.id===id));
+  renderMain(ep);
+}
+
+function renderMain(ep){
+  const fullUrl = `${API_BASE_URL}${ep.path}`;
+  const paramRows = ep.params.map(p => `
+    <tr>
+      <td><code>${escHtml(p.name)}</code></td>
+      <td>${p.required ? '<span class="param-req">WAJIB</span>' : '<span class="param-opt">opsional</span>'}</td>
+      <td class="param-desc">${escHtml(p.placeholder || "")}</td>
+    </tr>`).join("");
+
+  const exampleQuery = ep.params.filter(p=>p.required).map(p=>`${p.name}=${encodeURIComponent(p.placeholder||"nilai")}`).join("&");
+  const exampleUrl = `${fullUrl}${exampleQuery ? "?"+exampleQuery : ""}`;
+
+  const curl = `curl -s "${exampleUrl}"`;
+  const js = `fetch("${exampleUrl}")\n  .then(res => res.json())\n  .then(data => console.log(data))\n  .catch(err => console.error(err));`;
+  const py = `import requests\n\nres = requests.get("${fullUrl}", params={\n${ep.params.map(p=>`    "${p.name}": "${p.placeholder||''}"`).join(",\n")}\n})\nprint(res.json())`;
+
+  document.getElementById("mainContent").innerHTML = `
+    <div class="crumb">Hikaru REST API <i class="fas fa-chevron-right" style="font-size:.6rem;margin:0 4px;"></i> <span>${escHtml(ep.category)}</span></div>
+    <div class="title-row">
+      <h1 class="page-title">${escHtml(ep.name)}</h1>
+      <span class="tag-live"><span class="node-pulse" style="margin:0;"></span> Live</span>
+    </div>
+    <p class="page-desc">${escHtml(ep.description)}</p>
+
+    <div class="split">
+      <!-- DOCS -->
+      <div class="docs">
+        <div class="doc-block">
+          <div class="doc-label">Parameter</div>
+          <table class="param-table">
+            <thead><tr><th>Nama</th><th>Wajib</th><th>Contoh</th></tr></thead>
+            <tbody>${paramRows || '<tr><td colspan="3" class="param-desc">Tidak ada parameter.</td></tr>'}</tbody>
+          </table>
+        </div>
+
+        <div class="doc-block">
+          <div class="doc-label">Contoh kode</div>
+          <div class="snippet-tabs">
+            <div class="snippet-tab active" data-lang="curl">cURL</div>
+            <div class="snippet-tab" data-lang="js">JavaScript</div>
+            <div class="snippet-tab" data-lang="py">Python</div>
+          </div>
+          <div class="snippet-body">
+            <button class="snippet-copy" id="snippetCopyBtn"><i class="fas fa-copy"></i> Copy</button>
+            <div class="snippet-pane active" data-lang="curl"><pre>${highlightCurl(curl)}</pre></div>
+            <div class="snippet-pane" data-lang="js"><pre>${highlightJs(js)}</pre></div>
+            <div class="snippet-pane" data-lang="py"><pre>${highlightPy(py)}</pre></div>
+          </div>
+        </div>
+
+        <div class="doc-block">
+          <div class="doc-label">Endpoint</div>
+          <table class="param-table">
+            <tbody>
+              <tr><td style="width:120px;">Method</td><td><code>${ep.method}</code></td><td></td></tr>
+              <tr><td>Base URL</td><td colspan="2"><code>${escHtml(API_BASE_URL)}</code></td></tr>
+              <tr><td>Path</td><td colspan="2"><code>${escHtml(ep.path)}</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CONSOLE -->
+      <div class="console">
+        <div class="console-head">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="console-head-title">Konsol Uji Coba</div>
+          <svg class="trace" id="trace" viewBox="0 0 70 16"><path d="M0,8 L20,8 L24,2 L28,14 L32,8 L70,8"/></svg>
+        </div>
+        <div class="console-url">
+          <span class="method-pill ${ep.method.toLowerCase()}">${ep.method}</span>
+          <span id="consoleUrlText">${escHtml(API_BASE_URL + ep.path)}</span>
+        </div>
+        <div class="console-form" id="consoleForm">
+          ${ep.params.map(p => `
+            <div class="field">
+              <label>${escHtml(p.name)} ${p.required ? '<span class="req">wajib</span>' : ''}</label>
+              <input type="text" data-param="${escHtml(p.name)}" placeholder="${escHtml(p.placeholder||'')}" />
+            </div>`).join("")}
+          <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i> Kirim Request</button>
+        </div>
+        <div class="console-response">
+          <div class="resp-tabs">
+            <div class="resp-tab active">Response</div>
+            <div class="resp-status" id="respStatus" style="display:none;"></div>
+          </div>
+          <div class="resp-body" id="respBody">
+            <div class="resp-placeholder"><i class="fas fa-satellite-dish"></i><p>Isi parameter lalu klik Kirim Request<br>untuk melihat response.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // snippet tabs
+  document.querySelectorAll(".snippet-tab").forEach(t=>{
+    t.addEventListener("click",()=>{
+      document.querySelectorAll(".snippet-tab").forEach(x=>x.classList.remove("active"));
+      document.querySelectorAll(".snippet-pane").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active");
+      document.querySelector(`.snippet-pane[data-lang="${t.dataset.lang}"]`).classList.add("active");
+    });
+  });
+  document.getElementById("snippetCopyBtn").addEventListener("click", function(){
+    const active = document.querySelector(".snippet-pane.active pre").innerText;
+    navigator.clipboard.writeText(active).then(()=>{ showToast("ok","Kode disalin"); });
+  });
+
+  // live console url preview
+  const urlTextEl = document.getElementById("consoleUrlText");
+  document.querySelectorAll('#consoleForm input').forEach(inp=>{
+    inp.addEventListener("input", updatePreviewUrl);
+  });
+  function updatePreviewUrl(){
+    const parts = [];
+    document.querySelectorAll('#consoleForm input').forEach(i=>{
+      if(i.value.trim()) parts.push(`${i.dataset.param}=${encodeURIComponent(i.value.trim())}`);
+    });
+    urlTextEl.textContent = API_BASE_URL + ep.path + (parts.length ? "?"+parts.join("&") : "");
+  }
+
+  document.getElementById("sendBtn").addEventListener("click", () => sendRequest(ep));
+}
+
+/* ============================================================
+   CONFIG VIEW — atur base URL & kelola endpoint lewat UI,
+   tersimpan otomatis di localStorage browser.
+   ============================================================ */
+function renderConfig(){
+  editingEndpointId = null;
+  document.getElementById("mainContent").innerHTML = `
+    <div class="crumb">Hikaru REST API <i class="fas fa-chevron-right" style="font-size:.6rem;margin:0 4px;"></i> <span>Config</span></div>
+    <div class="title-row"><h1 class="page-title">Config</h1></div>
+    <p class="page-desc">Atur alamat server API dan kelola daftar endpoint langsung dari sini. Perubahan tersimpan otomatis di browser ini.</p>
+
+    <div class="cfg-block">
+      <h3>Base URL</h3>
+      <div class="cfg-sub">Alamat root server API kamu. Semua path endpoint akan digabung ke alamat ini.</div>
+      <div class="cfg-row">
+        <div class="cfg-field" style="flex:2; min-width:260px;">
+          <label>API Base URL</label>
+          <input type="text" id="cfgBaseUrl" value="${escHtml(API_BASE_URL)}" placeholder="https://api.domainkamu.com" />
+        </div>
+        <button class="cfg-btn primary" id="cfgSaveBaseUrl"><i class="fas fa-check"></i> Simpan</button>
+      </div>
+    </div>
+
+    <div class="cfg-block">
+      <h3>Daftar Endpoint</h3>
+      <div class="cfg-sub">${ENDPOINTS.length} endpoint terdaftar. Klik pensil untuk edit, tempat sampah untuk hapus.</div>
+      <div class="cfg-list" id="cfgEndpointList"></div>
+    </div>
+
+    <div class="cfg-block">
+      <h3 id="cfgFormTitle">Tambah Endpoint Baru</h3>
+      <div class="cfg-sub">Isi detail endpoint. Endpoint akan langsung muncul di sidebar dan konsol uji-coba.</div>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div class="cfg-row">
+          <div class="cfg-field"><label>Nama</label><input type="text" id="cfgName" placeholder="Nama Endpoint" /></div>
+          <div class="cfg-field"><label>Kategori</label><input type="text" id="cfgCategory" placeholder="mis. AI, Media Downloader" /></div>
+        </div>
+        <div class="cfg-row">
+          <div class="cfg-field" style="flex:0 0 110px;">
+            <label>Method</label>
+            <select id="cfgMethod"><option value="GET">GET</option><option value="POST">POST</option></select>
+          </div>
+          <div class="cfg-field"><label>Path</label><input type="text" id="cfgPath" placeholder="/endpoint-baru" /></div>
+          <div class="cfg-field" style="flex:0 0 140px;">
+            <label>Tampilan Respons</label>
+            <select id="cfgRender"><option value="json">JSON mentah</option><option value="tiktok">Kartu TikTok</option></select>
+          </div>
+        </div>
+        <div class="cfg-field">
+          <label>Deskripsi</label>
+          <textarea id="cfgDescription" placeholder="Jelaskan fungsi endpoint ini untuk dokumentasi..."></textarea>
+        </div>
+        <div class="cfg-field">
+          <label>Parameter</label>
+          <div id="cfgParamRows"></div>
+          <button class="cfg-btn ghost" id="cfgAddParamRow" style="align-self:flex-start; margin-top:4px;"><i class="fas fa-plus"></i> Tambah Parameter</button>
+        </div>
+        <div class="cfg-row">
+          <button class="cfg-btn primary" id="cfgSaveEndpoint"><i class="fas fa-floppy-disk"></i> Simpan Endpoint</button>
+          <button class="cfg-btn ghost" id="cfgCancelEdit" style="display:none;">Batal Edit</button>
+          <button class="cfg-btn danger" id="cfgResetAll" style="margin-left:auto;"><i class="fas fa-rotate-left"></i> Reset ke Default</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  renderCfgEndpointList();
+  document.getElementById("cfgParamRows").innerHTML = "";
+  addCfgParamRow();
+
+  document.getElementById("cfgSaveBaseUrl").addEventListener("click", () => {
+    const val = document.getElementById("cfgBaseUrl").value.trim();
+    if(!val){ showToast("err","Base URL tidak boleh kosong"); return; }
+    persistBaseUrl(val);
+    showToast("ok","Base URL disimpan");
+    renderConfig();
+  });
+
+  document.getElementById("cfgAddParamRow").addEventListener("click", () => addCfgParamRow());
+  document.getElementById("cfgSaveEndpoint").addEventListener("click", saveCfgEndpoint);
+  document.getElementById("cfgCancelEdit").addEventListener("click", () => renderConfig());
+  document.getElementById("cfgResetAll").addEventListener("click", () => {
+    if(!confirm("Kembalikan base URL & semua endpoint ke pengaturan default? Perubahan kustom akan hilang.")) return;
+    localStorage.removeItem("hikaru_base_url");
+    localStorage.removeItem("hikaru_endpoints");
+    API_BASE_URL = loadBaseUrl();
+    ENDPOINTS = loadEndpoints();
+    activeId = ENDPOINTS[0].id;
+    showToast("ok","Dikembalikan ke default");
+    renderSidebar();
+    renderConfig();
+  });
+}
+
+function renderCfgEndpointList(){
+  const list = document.getElementById("cfgEndpointList");
+  list.innerHTML = ENDPOINTS.map(ep => `
+    <div class="cfg-list-item">
+      <span class="node-method ${ep.method.toLowerCase()}">${ep.method}</span>
+      <div>
+        <div class="clabel">${escHtml(ep.name)}</div>
+        <div class="cpath">${escHtml(API_BASE_URL + ep.path)}</div>
+      </div>
+      <button data-edit="${ep.id}" title="Edit"><i class="fas fa-pen"></i></button>
+      <button data-del="${ep.id}" title="Hapus"><i class="fas fa-trash"></i></button>
+    </div>`).join("");
+  list.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => loadCfgEndpointForEdit(b.dataset.edit)));
+  list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => deleteCfgEndpoint(b.dataset.del)));
+}
+
+function addCfgParamRow(name="", required=false, placeholder=""){
+  const wrap = document.getElementById("cfgParamRows");
+  const row = document.createElement("div");
+  row.className = "cfg-params-row";
+  row.innerHTML = `
+    <input type="text" class="cfg-p-name" placeholder="nama parameter" value="${escHtml(name)}" />
+    <label><input type="checkbox" class="cfg-p-req" ${required?"checked":""}/> wajib</label>
+    <input type="text" class="cfg-p-ph" placeholder="contoh nilai" value="${escHtml(placeholder)}" />
+    <button type="button" title="Hapus parameter"><i class="fas fa-xmark"></i></button>`;
+  row.querySelector("button").addEventListener("click", () => row.remove());
+  wrap.appendChild(row);
+}
+
+function loadCfgEndpointForEdit(id){
+  const ep = ENDPOINTS.find(e => e.id === id);
+  if(!ep) return;
+  editingEndpointId = id;
+  document.getElementById("cfgFormTitle").textContent = `Edit Endpoint — ${ep.name}`;
+  document.getElementById("cfgName").value = ep.name;
+  document.getElementById("cfgCategory").value = ep.category;
+  document.getElementById("cfgMethod").value = ep.method;
+  document.getElementById("cfgPath").value = ep.path;
+  document.getElementById("cfgRender").value = ep.render || "json";
+  document.getElementById("cfgDescription").value = ep.description;
+  document.getElementById("cfgParamRows").innerHTML = "";
+  (ep.params||[]).forEach(p => addCfgParamRow(p.name, p.required, p.placeholder));
+  document.getElementById("cfgCancelEdit").style.display = "inline-flex";
+  document.getElementById("cfgSaveEndpoint").scrollIntoView({behavior:"smooth", block:"center"});
+}
+
+function deleteCfgEndpoint(id){
+  if(!confirm("Hapus endpoint ini?")) return;
+  ENDPOINTS = ENDPOINTS.filter(e => e.id !== id);
+  persistEndpoints();
+  if(activeId === id && ENDPOINTS.length) activeId = ENDPOINTS[0].id;
+  showToast("ok","Endpoint dihapus");
+  renderSidebar();
+  renderCfgEndpointList();
+}
+
+function saveCfgEndpoint(){
+  const name = document.getElementById("cfgName").value.trim();
+  const category = document.getElementById("cfgCategory").value.trim() || "Lainnya";
+  const method = document.getElementById("cfgMethod").value;
+  const path = document.getElementById("cfgPath").value.trim();
+  const render = document.getElementById("cfgRender").value;
+  const description = document.getElementById("cfgDescription").value.trim();
+
+  if(!name || !path){ showToast("err","Nama dan path wajib diisi"); return; }
+
+  const params = [];
+  document.querySelectorAll("#cfgParamRows .cfg-params-row").forEach(row => {
+    const pname = row.querySelector(".cfg-p-name").value.trim();
+    if(!pname) return;
+    params.push({
+      name: pname,
+      required: row.querySelector(".cfg-p-req").checked,
+      placeholder: row.querySelector(".cfg-p-ph").value.trim()
+    });
+  });
+
+  if(editingEndpointId){
+    const idx = ENDPOINTS.findIndex(e => e.id === editingEndpointId);
+    if(idx > -1) ENDPOINTS[idx] = { ...ENDPOINTS[idx], name, category, method, path: path.startsWith("/")?path:"/"+path, description, params, render };
+    showToast("ok","Endpoint diperbarui");
+  } else {
+    const id = slugify(name) + "-" + Math.random().toString(36).slice(2,6);
+    ENDPOINTS.push({ id, name, category, method, path: path.startsWith("/")?path:"/"+path, description, params, render });
+    showToast("ok","Endpoint ditambahkan");
+  }
+  persistEndpoints();
+  renderSidebar();
+  renderConfig();
+}
+
+function slugify(str){
+  return String(str).toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"") || "endpoint";
+}
+
+/* ============================================================
+   REQUEST HANDLING
+   ============================================================ */
+async function sendRequest(ep){
+  const btn = document.getElementById("sendBtn");
+  const respBody = document.getElementById("respBody");
+  const respStatus = document.getElementById("respStatus");
+  const trace = document.getElementById("trace");
+
+  const query = new URLSearchParams();
+  let missing = null;
+  document.querySelectorAll('#consoleForm input').forEach(inp => {
+    const val = inp.value.trim();
+    if(val) query.set(inp.dataset.param, val);
+    else if(inp.previousElementSibling === null){}
+  });
+  for(const p of ep.params){
+    if(p.required && !query.get(p.name)){ missing = p.name; }
+  }
+  if(missing){
+    showToast("err", `Parameter "${missing}" wajib diisi`);
+    return;
+  }
+
+  const url = `${API_BASE_URL}${ep.path}?${query.toString()}`;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Mengirim...';
+  trace.classList.add("live");
+  respStatus.style.display = "none";
+  respBody.innerHTML = `<div class="resp-placeholder"><i class="fas fa-circle-notch fa-spin"></i><p>Menunggu response...</p></div>`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    respStatus.style.display = "inline-block";
+    respStatus.textContent = `HTTP ${res.status}`;
+    respStatus.className = "resp-status " + (res.ok ? "ok" : "err");
+
+    const renderer = RESPONSE_RENDERERS[ep.render] || RESPONSE_RENDERERS.json;
+    respBody.innerHTML = renderer(data);
+    showToast(res.ok ? "ok" : "err", res.ok ? "Response diterima" : "Server mengembalikan error");
+  } catch(err){
+    respStatus.style.display = "inline-block";
+    respStatus.textContent = "ERROR";
+    respStatus.className = "resp-status err";
+    respBody.innerHTML = `<pre>${syntaxHighlightJson(JSON.stringify({error: err.message || "Request gagal"}, null, 2))}</pre>`;
+    showToast("err", "Request gagal: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Request';
+    setTimeout(()=>trace.classList.remove("live"), 900);
+  }
+}
+
+/* ============================================================
+   RESPONSE RENDERERS — tambahkan renderer baru di sini bila perlu
+   ============================================================ */
+const RESPONSE_RENDERERS = {
+  json(data){
+    return `<pre>${syntaxHighlightJson(JSON.stringify(data, null, 2))}</pre>`;
+  },
+  tiktok(data){
+    const result = data.result || data.data || data;
+    const hasVideo = result && (result.video || result.videoUrl || result.play || result.hdplay || result.nowm);
+    if(!hasVideo) return RESPONSE_RENDERERS.json(data);
+    const title = result.title || result.desc || "Video TikTok";
+    const author = result.author || result.nickname || "unknown";
+    const thumb = result.cover || result.thumbnail || result.origin_cover || "";
+    const links = [];
+    const tryLink=(u,label)=>{ if(u && typeof u==="string" && u.startsWith("http")) links.push({u,label}); };
+    tryLink(result.hdplay, "Unduh HD (No Watermark)");
+    tryLink(result.nowm || result.play, "Unduh Video");
+    tryLink(result.music, "Unduh Audio");
+    return `
+      <div class="tt-card">
+        ${thumb ? `<img class="tt-thumb" src="${thumb}" onerror="this.style.display='none'">` : ""}
+        <div class="tt-title">${escHtml(title)}</div>
+        <div class="tt-author"><i class="fas fa-user"></i> @${escHtml(String(author))}</div>
+        <div class="tt-links">
+          ${links.map(l=>`<a class="tt-link" href="${l.u}" target="_blank" rel="noopener"><i class="fas fa-download"></i> ${l.label}</a>`).join("") || `<div style="color:#8FA3B0;font-size:.78rem;">Tidak ada tautan unduhan pada response ini.</div>`}
+        </div>
+      </div>`;
+  }
+};
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function escHtml(str){
   return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
-
-/* ─── API FILTERS ─── */
-function initAPIFilters() {
-  const btns = document.querySelectorAll(".filter-btn");
-  const cards = document.querySelectorAll(".api-card");
-  btns.forEach(btn => {
-    btn.addEventListener("click", function() {
-      btns.forEach(b => b.classList.remove("active")); this.classList.add("active");
-      const filter = this.dataset.filter;
-      cards.forEach(card => {
-        if (filter === "all" || card.dataset.category === filter) {
-          card.style.display = "";
-        } else { card.style.display = "none"; }
-      });
-    });
+function syntaxHighlightJson(json){
+  const esc = escHtml(json);
+  return esc.replace(/(&quot;(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\&])*&quot;(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m=>{
+    let c="sn";
+    if(/^&quot;/.test(m)) c = /:$/.test(m) ? "sk" : "ss";
+    else if(/true|false/.test(m)) c = "sf";
+    return `<span class="${c}">${m}</span>`;
   });
 }
-
-/* ─── API SEARCH ─── */
-function initAPISearch() {
-  const input = document.getElementById("apiSearch");
-  const cards = document.querySelectorAll(".api-card");
-  if (!input) return;
-  input.addEventListener("input", function() {
-    const q = this.value.toLowerCase();
-    cards.forEach(card => {
-      const n = card.querySelector(".api-name")?.textContent.toLowerCase() || "";
-      const d = card.querySelector(".api-desc")?.textContent.toLowerCase() || "";
-      card.style.display = (n.includes(q) || d.includes(q)) ? "" : "none";
-    });
-  });
+function highlightCurl(str){
+  return escHtml(str).replace(/^(curl)/, '<span class="sf">$1</span>').replace(/(-s)/, '<span class="sk">$1</span>').replace(/(&quot;.*?&quot;)/, m=>`<span class="ss">${m}</span>`);
 }
-
-/* ─── TESTIMONIAL SLIDER ─── */
-function initTestimonialSlider() {
-  const track = document.getElementById("testimonialTrack");
-  const dotsEl = document.getElementById("sliderDots");
-  if (!track) return;
-  const cards = track.querySelectorAll(".testimonial-card");
-  let cur = 0, perView = getPV(), total = Math.ceil(cards.length / perView), auto;
-  function getPV() { return window.innerWidth >= 1024 ? 3 : window.innerWidth >= 640 ? 2 : 1; }
-  function buildDots() {
-    dotsEl.innerHTML = "";
-    for (let i = 0; i < total; i++) {
-      const d = document.createElement("div");
-      d.className = "slider-dot" + (i === 0 ? " active" : "");
-      d.onclick = () => goTo(i);
-      dotsEl.appendChild(d);
-    }
-  }
-  function goTo(idx) {
-    cur = (idx + total) % total;
-    const cardW = cards[0] ? (cards[0].offsetWidth + 24) : 0;
-    track.style.transform = `translateX(-${cur * perView * cardW}px)`;
-    document.querySelectorAll(".slider-dot").forEach((d, i) => d.classList.toggle("active", i === cur));
-  }
-  function startAuto() { auto = setInterval(() => goTo(cur + 1), 4000); }
-  function stopAuto() { clearInterval(auto); }
-  document.getElementById("sliderPrev")?.addEventListener("click", () => { stopAuto(); goTo(cur - 1); startAuto(); });
-  document.getElementById("sliderNext")?.addEventListener("click", () => { stopAuto(); goTo(cur + 1); startAuto(); });
-  window.addEventListener("resize", () => { perView = getPV(); total = Math.ceil(cards.length / perView); buildDots(); goTo(0); });
-  buildDots(); startAuto();
+function highlightJs(str){
+  let s = escHtml(str);
+  s = s.replace(/\b(fetch|then|catch|console|log|error)\b/g, '<span class="sf">$1</span>');
+  s = s.replace(/(&quot;.*?&quot;)/g, '<span class="ss">$1</span>');
+  return s;
 }
-
-/* ─── COUNTERS ─── */
-function initCounters() {
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      const el = entry.target;
-      const target = parseInt(el.dataset.count);
-      const suffix = el.dataset.suffix || "";
-      const start = performance.now();
-      (function step(now) {
-        const p = Math.min((now - start) / 1800, 1);
-        const v = Math.floor((1 - Math.pow(1-p, 3)) * target);
-        if (target >= 1000000) el.textContent = (v/1000000).toFixed(1) + "M" + suffix;
-        else if (target >= 1000) el.textContent = (v >= 1000 ? Math.floor(v/1000) + "K" : v) + suffix;
-        else el.textContent = v + suffix;
-        if (p < 1) requestAnimationFrame(step);
-        else {
-          if (target >= 1000000) el.textContent = "1M+";
-          else if (target >= 1000) el.textContent = Math.floor(target/1000) + "K+";
-          else el.textContent = target + suffix;
-        }
-      })(start);
-      obs.unobserve(el);
-    });
-  }, { threshold: 0.5 });
-  document.querySelectorAll(".stat-num").forEach(c => obs.observe(c));
+function highlightPy(str){
+  let s = escHtml(str);
+  s = s.replace(/\b(import|print)\b/g, '<span class="sk">$1</span>');
+  s = s.replace(/\b(requests|get)\b/g, '<span class="sf">$1</span>');
+  s = s.replace(/(&quot;.*?&quot;)/g, '<span class="ss">$1</span>');
+  return s;
 }
-
-/* ─── SYNTAX HIGHLIGHT ─── */
-function syntaxHighlight(json) {
-  return json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/(\"(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\\"])*\"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
-      let c = "json-number";
-      if (/^"/.test(m)) c = /:$/.test(m) ? "json-key" : "json-string";
-      else if (/true|false/.test(m)) c = "json-boolean";
-      else if (/null/.test(m)) c = "json-null";
-      return `<span class="${c}">${m}</span>`;
-    });
-}
-
-/* ─── COPY HELPERS ─── */
-function copyEndpoint(elId, btn) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  navigator.clipboard.writeText(CONFIG.apiBaseUrl + el.textContent).then(() => {
-    const orig = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-check"></i>';
-    btn.style.color = "var(--green)";
-    showToast("success", "Endpoint copied!");
-    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ""; }, 2000);
-  });
-}
-function copyCode(elId, btn) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  navigator.clipboard.writeText(el.textContent).then(() => {
-    const orig = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-    btn.style.color = "var(--green)";
-    showToast("success", "Code copied!");
-    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ""; }, 2000);
-  });
-}
-
-/* ─── TOAST ─── */
-function showToast(type, message) {
+function showToast(type, msg){
   const c = document.getElementById("toastContainer");
   const t = document.createElement("div");
-  t.className = `toast toast-${type}`;
-  t.innerHTML = `<i class="fas ${type === "success" ? "fa-check-circle" : "fa-exclamation-circle"}"></i> ${message}`;
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="fas ${type==='ok' ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i> ${escHtml(msg)}`;
   c.appendChild(t);
-  setTimeout(() => { t.classList.add("toast-out"); setTimeout(() => t.remove(), 400); }, 3000);
+  setTimeout(()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),300); }, 2800);
+}
+function openSidebar(){ document.getElementById("sidebar").classList.add("open"); }
+function closeSidebar(){ document.getElementById("sidebar").classList.remove("open"); }
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener("DOMContentLoaded", () => {
+  const hashId = location.hash.replace("#","");
+  if(hashId && ENDPOINTS.some(e=>e.id===hashId)) activeId = hashId;
+
+  renderSidebar();
+  selectEndpoint(activeId);
+
+  document.getElementById("endpointSearch").addEventListener("input", e => renderSidebar(e.target.value));
+  document.addEventListener("keydown", e => {
+    if(e.key === "/" && document.activeElement.tagName !== "INPUT"){
+      e.preventDefault();
+      document.getElementById("endpointSearch")?.focus();
+    }
+  });
+
+  document.getElementById("sidebarToggle").addEventListener("click", () => {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+
+  document.getElementById("collapseBtn").addEventListener("click", toggleSidebarCollapse);
+  if(localStorage.getItem("hikaru_sidebar_collapsed") === "1"){
+    document.querySelector(".layout").classList.add("collapsed");
+    document.getElementById("collapseBtn").classList.add("rotated");
+  }
+
+  document.getElementById("configNode").addEventListener("click", () => {
+    activeId = "__config__";
+    document.querySelectorAll(".node").forEach(n => n.classList.remove("active"));
+    document.getElementById("configNode").classList.add("active");
+    renderConfig();
+    if(window.innerWidth<=760) closeSidebar();
+  });
+});
+
+function toggleSidebarCollapse(){
+  const layout = document.querySelector(".layout");
+  const btn = document.getElementById("collapseBtn");
+  const collapsed = layout.classList.toggle("collapsed");
+  btn.classList.toggle("rotated", collapsed);
+  localStorage.setItem("hikaru_sidebar_collapsed", collapsed ? "1" : "0");
 }
 </script>
 </body>
