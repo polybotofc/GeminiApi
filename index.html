@@ -208,36 +208,6 @@ code,pre{font-family:var(--mono);}
 .tt-link{display:flex; align-items:center; justify-content:center; gap:8px; padding:9px; border-radius:7px; font-family:var(--sans); font-size:.78rem; font-weight:600; background:var(--teal); color:#08201F;}
 .tt-link:hover{filter:brightness(1.08);}
 
-/* ---------- config view ---------- */
-.cfg-block{background:var(--card); border:1px solid var(--line-strong); border-radius:var(--radius); padding:22px 24px; margin-bottom:24px; max-width:720px;}
-.cfg-block h3{font-family:var(--mono); font-size:.92rem; margin-bottom:4px;}
-.cfg-block .cfg-sub{color:var(--ink-dim); font-size:.82rem; margin-bottom:16px; line-height:1.6;}
-.cfg-row{display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;}
-.cfg-field{display:flex; flex-direction:column; gap:6px; flex:1; min-width:160px;}
-.cfg-field label{font-family:var(--mono); font-size:.7rem; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.06em;}
-.cfg-field input, .cfg-field select, .cfg-field textarea{
-  background:var(--paper); border:1px solid var(--line-strong); border-radius:7px; padding:9px 11px; font-size:.85rem; color:var(--ink); font-family:var(--sans);
-}
-.cfg-field textarea{font-family:var(--mono); font-size:.78rem; resize:vertical; min-height:60px;}
-.cfg-field input:focus, .cfg-field select:focus, .cfg-field textarea:focus{outline:none; border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-dim);}
-.cfg-btn{padding:10px 16px; border-radius:7px; font-family:var(--mono); font-size:.78rem; font-weight:700; border:none; flex-shrink:0;}
-.cfg-btn.primary{background:var(--ink); color:#fff;}
-.cfg-btn.primary:hover{background:#0d1620;}
-.cfg-btn.ghost{background:var(--paper); border:1px solid var(--line-strong); color:var(--ink-dim);}
-.cfg-btn.ghost:hover{color:var(--ink); border-color:var(--ink-faint);}
-.cfg-btn.danger{background:var(--red-dim); color:var(--red); border:1px solid var(--red);}
-.cfg-list{display:flex; flex-direction:column; gap:8px;}
-.cfg-list-item{display:flex; align-items:center; gap:12px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:var(--paper);}
-.cfg-list-item .node-method{flex-shrink:0;}
-.cfg-list-item .clabel{flex:1; font-size:.85rem; font-weight:600;}
-.cfg-list-item .cpath{font-family:var(--mono); font-size:.75rem; color:var(--ink-faint);}
-.cfg-list-item button{width:28px; height:28px; border-radius:6px; background:var(--card); border:1px solid var(--line-strong); color:var(--ink-dim); flex-shrink:0;}
-.cfg-list-item button:hover{color:var(--red); border-color:var(--red);}
-.cfg-params-row{display:flex; gap:8px; align-items:center; margin-bottom:6px;}
-.cfg-params-row input[type="text"]{flex:1;}
-.cfg-params-row label{display:flex; align-items:center; gap:4px; font-size:.72rem; color:var(--ink-dim); white-space:nowrap;}
-.cfg-params-row button{width:26px; height:26px; border-radius:6px; background:var(--paper); border:1px solid var(--line-strong); color:var(--ink-faint); flex-shrink:0;}
-
 /* ---------- toast ---------- */
 .toast-container{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; gap:8px; z-index:1000; pointer-events:none;}
 .toast{display:flex; align-items:center; gap:10px; padding:11px 18px; background:var(--ink); color:#fff; border-radius:8px; font-family:var(--mono); font-size:.78rem; box-shadow:0 8px 24px rgba(0,0,0,.25); animation:tin .3s ease forwards; pointer-events:auto;}
@@ -290,13 +260,6 @@ code,pre{font-family:var(--mono);}
 
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-group">
-      <div class="node" id="configNode">
-        <span class="node-method" style="background:var(--paper2); color:var(--ink-dim);"><i class="fas fa-gear"></i></span>
-        <span class="node-name">Config</span>
-      </div>
-    </div>
-    <div style="height:1px; background:var(--line); margin:8px 24px 8px 40px;"></div>
     <div id="sidebarTree"></div>
   </aside>
 
@@ -309,13 +272,14 @@ code,pre{font-family:var(--mono);}
 
 <script>
 /* ============================================================
-   KONFIGURASI DEFAULT — nilai awal. Setelah dijalankan, base URL
-   dan daftar endpoint sepenuhnya bisa diatur lewat panel "Config"
-   di sidebar (tersimpan otomatis di localStorage browser).
+   KONFIGURASI — satu-satunya tempat yang perlu diedit untuk
+   menambah / mengubah endpoint API. Semua di kode, tidak ada
+   penyimpanan browser / form UI untuk ini.
    ============================================================ */
-const DEFAULT_API_BASE_URL = "https://www.poly-md.my.id";
+const API_BASE_URL = ""; // kosongkan biar request ke path relatif di domain yang sama, mis. "/response?message=...".
+                          // Kalau API-nya beda domain dari file ini, isi penuh: "https://domain-api-kamu.com"
 
-const DEFAULT_ENDPOINTS = [
+const ENDPOINTS = [
   {
     id: "ai-chat",
     category: "Artificial Intelligence",
@@ -341,33 +305,28 @@ const DEFAULT_ENDPOINTS = [
     ],
     render: "tiktok"
   }
+  /* Tambahkan endpoint baru di sini, contoh:
+  {
+    id: "endpoint-baru",
+    category: "Kategori",
+    name: "Nama Endpoint",
+    method: "GET",              // GET / POST
+    path: "/path-di-server",
+    description: "Penjelasan singkat untuk dokumentasi.",
+    params: [
+      { name: "param1", required: true,  placeholder: "contoh nilai" },
+      { name: "param2", required: false, placeholder: "opsional" }
+    ],
+    render: "json"               // "json" atau "tiktok", atau tambah renderer baru di RESPONSE_RENDERERS
+  },
+  */
 ];
-
-/* ============================================================
-   STORAGE — base URL & daftar endpoint dibaca dari localStorage
-   kalau sudah pernah disimpan lewat panel Config.
-   ============================================================ */
-function loadBaseUrl(){
-  return localStorage.getItem("hikaru_base_url") || DEFAULT_API_BASE_URL;
-}
-function loadEndpoints(){
-  try{
-    const raw = localStorage.getItem("hikaru_endpoints");
-    if(raw){ const parsed = JSON.parse(raw); if(Array.isArray(parsed) && parsed.length) return parsed; }
-  }catch(e){}
-  return JSON.parse(JSON.stringify(DEFAULT_ENDPOINTS));
-}
-function persistBaseUrl(url){ API_BASE_URL = url; localStorage.setItem("hikaru_base_url", url); }
-function persistEndpoints(){ localStorage.setItem("hikaru_endpoints", JSON.stringify(ENDPOINTS)); }
-
-let API_BASE_URL = loadBaseUrl();
-let ENDPOINTS = loadEndpoints();
 
 /* ============================================================
    RENDER STATE
    ============================================================ */
 let activeId = ENDPOINTS[0].id;
-let editingEndpointId = null;
+
 
 function groupByCategory(list){
   const map = new Map();
@@ -465,7 +424,7 @@ function renderMain(ep){
           <table class="param-table">
             <tbody>
               <tr><td style="width:120px;">Method</td><td><code>${ep.method}</code></td><td></td></tr>
-              <tr><td>Base URL</td><td colspan="2"><code>${escHtml(API_BASE_URL)}</code></td></tr>
+              <tr><td>Base URL</td><td colspan="2"><code>${API_BASE_URL ? escHtml(API_BASE_URL) : "(domain saat ini — path relatif)"}</code></td></tr>
               <tr><td>Path</td><td colspan="2"><code>${escHtml(ep.path)}</code></td></tr>
             </tbody>
           </table>
@@ -532,195 +491,6 @@ function renderMain(ep){
   }
 
   document.getElementById("sendBtn").addEventListener("click", () => sendRequest(ep));
-}
-
-/* ============================================================
-   CONFIG VIEW — atur base URL & kelola endpoint lewat UI,
-   tersimpan otomatis di localStorage browser.
-   ============================================================ */
-function renderConfig(){
-  editingEndpointId = null;
-  document.getElementById("mainContent").innerHTML = `
-    <div class="crumb">Hikaru REST API <i class="fas fa-chevron-right" style="font-size:.6rem;margin:0 4px;"></i> <span>Config</span></div>
-    <div class="title-row"><h1 class="page-title">Config</h1></div>
-    <p class="page-desc">Atur alamat server API dan kelola daftar endpoint langsung dari sini. Perubahan tersimpan otomatis di browser ini.</p>
-
-    <div class="cfg-block">
-      <h3>Base URL</h3>
-      <div class="cfg-sub">Alamat root server API kamu. Semua path endpoint akan digabung ke alamat ini.</div>
-      <div class="cfg-row">
-        <div class="cfg-field" style="flex:2; min-width:260px;">
-          <label>API Base URL</label>
-          <input type="text" id="cfgBaseUrl" value="${escHtml(API_BASE_URL)}" placeholder="https://api.domainkamu.com" />
-        </div>
-        <button class="cfg-btn primary" id="cfgSaveBaseUrl"><i class="fas fa-check"></i> Simpan</button>
-      </div>
-    </div>
-
-    <div class="cfg-block">
-      <h3>Daftar Endpoint</h3>
-      <div class="cfg-sub">${ENDPOINTS.length} endpoint terdaftar. Klik pensil untuk edit, tempat sampah untuk hapus.</div>
-      <div class="cfg-list" id="cfgEndpointList"></div>
-    </div>
-
-    <div class="cfg-block">
-      <h3 id="cfgFormTitle">Tambah Endpoint Baru</h3>
-      <div class="cfg-sub">Isi detail endpoint. Endpoint akan langsung muncul di sidebar dan konsol uji-coba.</div>
-      <div style="display:flex; flex-direction:column; gap:14px;">
-        <div class="cfg-row">
-          <div class="cfg-field"><label>Nama</label><input type="text" id="cfgName" placeholder="Nama Endpoint" /></div>
-          <div class="cfg-field"><label>Kategori</label><input type="text" id="cfgCategory" placeholder="mis. AI, Media Downloader" /></div>
-        </div>
-        <div class="cfg-row">
-          <div class="cfg-field" style="flex:0 0 110px;">
-            <label>Method</label>
-            <select id="cfgMethod"><option value="GET">GET</option><option value="POST">POST</option></select>
-          </div>
-          <div class="cfg-field"><label>Path</label><input type="text" id="cfgPath" placeholder="/endpoint-baru" /></div>
-          <div class="cfg-field" style="flex:0 0 140px;">
-            <label>Tampilan Respons</label>
-            <select id="cfgRender"><option value="json">JSON mentah</option><option value="tiktok">Kartu TikTok</option></select>
-          </div>
-        </div>
-        <div class="cfg-field">
-          <label>Deskripsi</label>
-          <textarea id="cfgDescription" placeholder="Jelaskan fungsi endpoint ini untuk dokumentasi..."></textarea>
-        </div>
-        <div class="cfg-field">
-          <label>Parameter</label>
-          <div id="cfgParamRows"></div>
-          <button class="cfg-btn ghost" id="cfgAddParamRow" style="align-self:flex-start; margin-top:4px;"><i class="fas fa-plus"></i> Tambah Parameter</button>
-        </div>
-        <div class="cfg-row">
-          <button class="cfg-btn primary" id="cfgSaveEndpoint"><i class="fas fa-floppy-disk"></i> Simpan Endpoint</button>
-          <button class="cfg-btn ghost" id="cfgCancelEdit" style="display:none;">Batal Edit</button>
-          <button class="cfg-btn danger" id="cfgResetAll" style="margin-left:auto;"><i class="fas fa-rotate-left"></i> Reset ke Default</button>
-        </div>
-      </div>
-    </div>
-  `;
-
-  renderCfgEndpointList();
-  document.getElementById("cfgParamRows").innerHTML = "";
-  addCfgParamRow();
-
-  document.getElementById("cfgSaveBaseUrl").addEventListener("click", () => {
-    const val = document.getElementById("cfgBaseUrl").value.trim();
-    if(!val){ showToast("err","Base URL tidak boleh kosong"); return; }
-    persistBaseUrl(val);
-    showToast("ok","Base URL disimpan");
-    renderConfig();
-  });
-
-  document.getElementById("cfgAddParamRow").addEventListener("click", () => addCfgParamRow());
-  document.getElementById("cfgSaveEndpoint").addEventListener("click", saveCfgEndpoint);
-  document.getElementById("cfgCancelEdit").addEventListener("click", () => renderConfig());
-  document.getElementById("cfgResetAll").addEventListener("click", () => {
-    if(!confirm("Kembalikan base URL & semua endpoint ke pengaturan default? Perubahan kustom akan hilang.")) return;
-    localStorage.removeItem("hikaru_base_url");
-    localStorage.removeItem("hikaru_endpoints");
-    API_BASE_URL = loadBaseUrl();
-    ENDPOINTS = loadEndpoints();
-    activeId = ENDPOINTS[0].id;
-    showToast("ok","Dikembalikan ke default");
-    renderSidebar();
-    renderConfig();
-  });
-}
-
-function renderCfgEndpointList(){
-  const list = document.getElementById("cfgEndpointList");
-  list.innerHTML = ENDPOINTS.map(ep => `
-    <div class="cfg-list-item">
-      <span class="node-method ${ep.method.toLowerCase()}">${ep.method}</span>
-      <div>
-        <div class="clabel">${escHtml(ep.name)}</div>
-        <div class="cpath">${escHtml(API_BASE_URL + ep.path)}</div>
-      </div>
-      <button data-edit="${ep.id}" title="Edit"><i class="fas fa-pen"></i></button>
-      <button data-del="${ep.id}" title="Hapus"><i class="fas fa-trash"></i></button>
-    </div>`).join("");
-  list.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => loadCfgEndpointForEdit(b.dataset.edit)));
-  list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => deleteCfgEndpoint(b.dataset.del)));
-}
-
-function addCfgParamRow(name="", required=false, placeholder=""){
-  const wrap = document.getElementById("cfgParamRows");
-  const row = document.createElement("div");
-  row.className = "cfg-params-row";
-  row.innerHTML = `
-    <input type="text" class="cfg-p-name" placeholder="nama parameter" value="${escHtml(name)}" />
-    <label><input type="checkbox" class="cfg-p-req" ${required?"checked":""}/> wajib</label>
-    <input type="text" class="cfg-p-ph" placeholder="contoh nilai" value="${escHtml(placeholder)}" />
-    <button type="button" title="Hapus parameter"><i class="fas fa-xmark"></i></button>`;
-  row.querySelector("button").addEventListener("click", () => row.remove());
-  wrap.appendChild(row);
-}
-
-function loadCfgEndpointForEdit(id){
-  const ep = ENDPOINTS.find(e => e.id === id);
-  if(!ep) return;
-  editingEndpointId = id;
-  document.getElementById("cfgFormTitle").textContent = `Edit Endpoint — ${ep.name}`;
-  document.getElementById("cfgName").value = ep.name;
-  document.getElementById("cfgCategory").value = ep.category;
-  document.getElementById("cfgMethod").value = ep.method;
-  document.getElementById("cfgPath").value = ep.path;
-  document.getElementById("cfgRender").value = ep.render || "json";
-  document.getElementById("cfgDescription").value = ep.description;
-  document.getElementById("cfgParamRows").innerHTML = "";
-  (ep.params||[]).forEach(p => addCfgParamRow(p.name, p.required, p.placeholder));
-  document.getElementById("cfgCancelEdit").style.display = "inline-flex";
-  document.getElementById("cfgSaveEndpoint").scrollIntoView({behavior:"smooth", block:"center"});
-}
-
-function deleteCfgEndpoint(id){
-  if(!confirm("Hapus endpoint ini?")) return;
-  ENDPOINTS = ENDPOINTS.filter(e => e.id !== id);
-  persistEndpoints();
-  if(activeId === id && ENDPOINTS.length) activeId = ENDPOINTS[0].id;
-  showToast("ok","Endpoint dihapus");
-  renderSidebar();
-  renderCfgEndpointList();
-}
-
-function saveCfgEndpoint(){
-  const name = document.getElementById("cfgName").value.trim();
-  const category = document.getElementById("cfgCategory").value.trim() || "Lainnya";
-  const method = document.getElementById("cfgMethod").value;
-  const path = document.getElementById("cfgPath").value.trim();
-  const render = document.getElementById("cfgRender").value;
-  const description = document.getElementById("cfgDescription").value.trim();
-
-  if(!name || !path){ showToast("err","Nama dan path wajib diisi"); return; }
-
-  const params = [];
-  document.querySelectorAll("#cfgParamRows .cfg-params-row").forEach(row => {
-    const pname = row.querySelector(".cfg-p-name").value.trim();
-    if(!pname) return;
-    params.push({
-      name: pname,
-      required: row.querySelector(".cfg-p-req").checked,
-      placeholder: row.querySelector(".cfg-p-ph").value.trim()
-    });
-  });
-
-  if(editingEndpointId){
-    const idx = ENDPOINTS.findIndex(e => e.id === editingEndpointId);
-    if(idx > -1) ENDPOINTS[idx] = { ...ENDPOINTS[idx], name, category, method, path: path.startsWith("/")?path:"/"+path, description, params, render };
-    showToast("ok","Endpoint diperbarui");
-  } else {
-    const id = slugify(name) + "-" + Math.random().toString(36).slice(2,6);
-    ENDPOINTS.push({ id, name, category, method, path: path.startsWith("/")?path:"/"+path, description, params, render });
-    showToast("ok","Endpoint ditambahkan");
-  }
-  persistEndpoints();
-  renderSidebar();
-  renderConfig();
-}
-
-function slugify(str){
-  return String(str).toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"") || "endpoint";
 }
 
 /* ============================================================
@@ -877,14 +647,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector(".layout").classList.add("collapsed");
     document.getElementById("collapseBtn").classList.add("rotated");
   }
-
-  document.getElementById("configNode").addEventListener("click", () => {
-    activeId = "__config__";
-    document.querySelectorAll(".node").forEach(n => n.classList.remove("active"));
-    document.getElementById("configNode").classList.add("active");
-    renderConfig();
-    if(window.innerWidth<=760) closeSidebar();
-  });
 });
 
 function toggleSidebarCollapse(){
