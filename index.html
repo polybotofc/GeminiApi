@@ -62,11 +62,14 @@ code,pre{font-family:var(--mono);}
 .topbar-search input{flex:1; background:none; border:none; color:var(--ink); font-size:.82rem;}
 .topbar-search input::placeholder{color:var(--ink-faint);}
 .topbar-search kbd{font-size:.68rem; padding:1px 6px; border:1px solid var(--line); border-radius:4px; color:var(--ink-faint);}
-.topbar-links{display:flex; align-items:center; gap:4px; margin-left:auto;}
+.topbar-links{display:flex; align-items:center; gap:8px; margin-left:auto;}
 .topbar-link{padding:7px 12px; font-size:.82rem; font-weight:600; color:var(--ink-dim); border-radius:7px; transition:.2s;}
 .topbar-link:hover{background:var(--card); color:var(--ink);}
 .status-chip{display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:20px; background:var(--teal-dim); border:1px solid var(--teal); font-family:var(--mono); font-size:.72rem; color:var(--teal); font-weight:600;}
 .status-chip .pd{width:6px;height:6px;border-radius:50%;background:var(--teal); box-shadow:0 0 6px var(--teal); animation:blink 1.8s infinite;}
+.session-chip{background:var(--amber-dim); border-color:var(--amber); color:var(--amber); cursor:pointer; border:1px solid var(--amber); transition:.15s;}
+.session-chip:hover{filter:brightness(0.97);}
+.session-chip .pd{background:var(--amber); box-shadow:0 0 6px var(--amber);}
 
 /* ---------- layout ---------- */
 .layout{display:grid; grid-template-columns:260px 1fr; min-height:calc(100vh - 57px); transition:grid-template-columns .25s ease;}
@@ -112,6 +115,7 @@ code,pre{font-family:var(--mono);}
 }
 .node-method.get{background:var(--teal-dim); color:var(--teal);}
 .node-method.post{background:var(--amber-dim); color:var(--amber);}
+.node-method.delete{background:var(--red-dim); color:var(--red);}
 .node-name{font-size:.83rem; color:var(--ink-dim); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .node-pulse{width:5px;height:5px;border-radius:50%;background:var(--teal); margin-left:auto; flex-shrink:0; box-shadow:0 0 5px var(--teal);}
 
@@ -138,6 +142,12 @@ code,pre{font-family:var(--mono);}
 .param-req{font-family:var(--mono); font-size:.65rem; font-weight:700; color:var(--red);}
 .param-opt{font-family:var(--mono); font-size:.65rem; color:var(--ink-faint);}
 .param-desc{color:var(--ink-dim); font-size:.83rem;}
+
+/* location badges (path / query / body) — shared between docs table and console form */
+.loc-badge{font-family:var(--mono); font-size:.6rem; padding:1px 6px; border-radius:4px; text-transform:uppercase; font-weight:700; letter-spacing:.03em;}
+.loc-badge.path{background:var(--amber-dim); color:var(--amber);}
+.loc-badge.query{background:var(--teal-dim); color:var(--teal);}
+.loc-badge.body{background:var(--paper2); color:var(--ink-dim); border:1px solid var(--line-strong);}
 
 .snippet-tabs{display:flex; gap:2px; margin-bottom:0; border-bottom:1px solid var(--line-strong);}
 .snippet-tab{padding:9px 16px; font-family:var(--mono); font-size:.76rem; font-weight:600; color:var(--ink-faint); border-bottom:2px solid transparent; transition:.15s;}
@@ -172,16 +182,21 @@ code,pre{font-family:var(--mono);}
 .method-pill{font-weight:700; padding:2px 8px; border-radius:4px; flex-shrink:0;}
 .method-pill.get{background:var(--teal-dim); color:var(--teal);}
 .method-pill.post{background:var(--amber-dim); color:var(--amber);}
+.method-pill.delete{background:var(--red-dim); color:var(--red);}
+.console-body-preview{padding:9px 16px; font-family:var(--mono); font-size:.7rem; color:var(--ink-faint); border-bottom:1px solid var(--line); white-space:pre-wrap; word-break:break-all; background:var(--paper2);}
 
 .console-form{padding:16px; display:flex; flex-direction:column; gap:14px;}
 .field{display:flex; flex-direction:column; gap:6px;}
 .field label{font-family:var(--mono); font-size:.72rem; color:var(--ink-dim); display:flex; gap:6px; align-items:center;}
 .field label .req{color:var(--red); font-size:.65rem;}
-.field input{
+.field input[type="text"]{
   background:var(--paper); border:1px solid var(--line-strong); border-radius:7px; padding:10px 12px;
   font-size:.85rem; color:var(--ink); transition:.15s;
 }
-.field input:focus{outline:none; border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-dim);}
+.field input[type="text"]:focus{outline:none; border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-dim);}
+.field-hint{font-family:var(--mono); font-size:.66rem; color:var(--amber); margin-top:-2px;}
+.chk-inline{display:flex; align-items:center; gap:8px; font-size:.82rem; color:var(--ink-dim); cursor:pointer;}
+.chk-inline input{accent-color:var(--teal); width:15px; height:15px;}
 .send-btn{
   display:flex; align-items:center; justify-content:center; gap:8px; padding:11px; border-radius:8px;
   background:var(--ink); color:#fff; font-family:var(--mono); font-weight:700; font-size:.82rem;
@@ -207,6 +222,22 @@ code,pre{font-family:var(--mono);}
 .tt-links{display:flex; flex-direction:column; gap:7px; margin-top:4px;}
 .tt-link{display:flex; align-items:center; justify-content:center; gap:8px; padding:9px; border-radius:7px; font-family:var(--sans); font-size:.78rem; font-weight:600; background:var(--teal); color:#08201F;}
 .tt-link:hover{filter:brightness(1.08);}
+
+/* ---------- Character.AI renderers ---------- */
+.cai-list{display:flex; flex-direction:column; gap:8px;}
+.cai-item{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:8px;}
+.cai-item-name{font-family:var(--sans); font-size:.82rem; color:#EAF0F4; font-weight:600;}
+.cai-item-id{font-family:var(--mono); font-size:.68rem; color:#8FA3B0; margin-top:2px; word-break:break-all;}
+.cai-item-btn{flex-shrink:0; font-family:var(--mono); font-size:.68rem; font-weight:700; padding:6px 10px; border-radius:6px; background:var(--teal); color:#08201F; border:none; cursor:pointer;}
+.cai-item-btn:hover{filter:brightness(1.08);}
+.cai-ticket{display:flex; flex-direction:column; gap:8px; font-family:var(--mono); font-size:.78rem; color:#D6DEE5; margin-bottom:10px;}
+.cai-ticket .row{display:flex; justify-content:space-between; gap:10px;}
+.cai-ticket .row b{color:#8FA3B0; font-weight:500;}
+.cai-ticket .row span{color:var(--teal); word-break:break-all; text-align:right;}
+.cai-greeting{padding:11px 13px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:8px; color:#EAF0F4; font-family:var(--sans); font-size:.82rem; line-height:1.6;}
+.cai-bubble{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:14px; font-family:var(--sans); font-size:.88rem; line-height:1.65; color:#EAF0F4; white-space:pre-wrap;}
+.cai-bubble-meta{margin-top:8px; font-family:var(--mono); font-size:.66rem; color:#6B7A87;}
+.cai-empty{color:#8FA3B0; font-family:var(--sans); font-size:.8rem; padding:6px 2px;}
 
 /* ---------- toast ---------- */
 .toast-container{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; gap:8px; z-index:1000; pointer-events:none;}
@@ -253,6 +284,7 @@ code,pre{font-family:var(--mono);}
   </div>
   <div class="topbar-links">
     <div class="status-chip"><span class="pd"></span> Semua sistem aktif</div>
+    <div class="status-chip session-chip" id="sessionChip" style="display:none;" title="Klik untuk menyalin session ID"></div>
   </div>
 </div>
 
@@ -275,6 +307,10 @@ code,pre{font-family:var(--mono);}
    KONFIGURASI — satu-satunya tempat yang perlu diedit untuk
    menambah / mengubah endpoint API. Semua di kode, tidak ada
    penyimpanan browser / form UI untuk ini.
+
+   Setiap parameter punya:
+     kind: "query" (default, ikut ?query=) | "path" (ikut :segmen di path) | "body" (ikut JSON body, untuk POST/DELETE)
+     type: "text" (default) | "checkbox"
    ============================================================ */
 const API_BASE_URL = ""; // kosongkan biar request ke path relatif di domain yang sama, mis. "/response?message=...".
                           // Kalau API-nya beda domain dari file ini, isi penuh: "https://domain-api-kamu.com"
@@ -304,20 +340,111 @@ const ENDPOINTS = [
       { name: "url", required: true, placeholder: "https://vt.tiktok.com/ZSjXXXXX/" }
     ],
     render: "tiktok"
+  },
+
+  /* ---------------- Character.AI ---------------- */
+  {
+    id: "cai-search",
+    category: "Character.AI",
+    name: "Cari Karakter",
+    method: "GET",
+    path: "/cai/search",
+    description: "Cari karakter Character.AI berdasarkan nama atau kata kunci. Gunakan hasilnya untuk mengambil Character ID yang dipakai di endpoint lain.",
+    params: [
+      { name: "q", kind: "query", required: true, placeholder: "Naruto" },
+      { name: "sort", kind: "query", required: false, placeholder: "search_score" }
+    ],
+    render: "cai-search"
+  },
+  {
+    id: "cai-character-info",
+    category: "Character.AI",
+    name: "Detail Karakter",
+    method: "GET",
+    path: "/cai/character/:charId",
+    description: "Ambil informasi detail sebuah karakter berdasarkan Character ID-nya.",
+    params: [
+      { name: "charId", kind: "path", required: true, placeholder: "Character ID dari hasil pencarian" }
+    ],
+    render: "json"
+  },
+  {
+    id: "cai-session-create",
+    category: "Character.AI",
+    name: "Buat Session",
+    method: "POST",
+    path: "/cai/session",
+    description: "Buat session/chat baru dengan sebuah karakter. Session ID hasilnya otomatis dipakai sebagai default di endpoint session lain di bawah.",
+    params: [
+      { name: "charId", kind: "body", required: true, placeholder: "Character ID dari hasil pencarian" },
+      { name: "newConversation", kind: "body", type: "checkbox", required: false, placeholder: "Mulai obrolan baru (bukan lanjutkan chat lama)" }
+    ],
+    render: "cai-session"
+  },
+  {
+    id: "cai-session-detail",
+    category: "Character.AI",
+    name: "Detail Session",
+    method: "GET",
+    path: "/cai/session/:id",
+    description: "Lihat charId dan chatId yang tersimpan untuk sebuah session.",
+    params: [
+      { name: "id", kind: "path", required: true, placeholder: "session ID dari Buat Session" }
+    ],
+    render: "json"
+  },
+  {
+    id: "cai-session-history",
+    category: "Character.AI",
+    name: "Riwayat Chat Session",
+    method: "GET",
+    path: "/cai/session/:id/history",
+    description: "Ambil riwayat percakapan (chat turns) dari sebuah session.",
+    params: [
+      { name: "id", kind: "path", required: true, placeholder: "session ID dari Buat Session" }
+    ],
+    render: "json"
+  },
+  {
+    id: "cai-session-chat",
+    category: "Character.AI",
+    name: "Kirim Pesan",
+    method: "POST",
+    path: "/cai/session/:id/chat",
+    description: "Kirim pesan ke karakter di dalam sebuah session dan terima balasannya.",
+    params: [
+      { name: "id", kind: "path", required: true, placeholder: "session ID dari Buat Session" },
+      { name: "message", kind: "body", required: true, placeholder: "Halo, apa kabar?" }
+    ],
+    render: "cai-chat"
+  },
+  {
+    id: "cai-session-delete",
+    category: "Character.AI",
+    name: "Hapus Session",
+    method: "DELETE",
+    path: "/cai/session/:id",
+    description: "Hapus sebuah session (hanya data lokal, tidak menghapus riwayat chat di Character.AI itu sendiri).",
+    params: [
+      { name: "id", kind: "path", required: true, placeholder: "session ID dari Buat Session" }
+    ],
+    render: "json"
   }
+
   /* Tambahkan endpoint baru di sini, contoh:
   {
     id: "endpoint-baru",
     category: "Kategori",
     name: "Nama Endpoint",
-    method: "GET",              // GET / POST
-    path: "/path-di-server",
+    method: "GET",              // GET / POST / DELETE
+    path: "/path-di-server/:paramPath",
     description: "Penjelasan singkat untuk dokumentasi.",
     params: [
-      { name: "param1", required: true,  placeholder: "contoh nilai" },
-      { name: "param2", required: false, placeholder: "opsional" }
+      { name:"paramPath", kind:"path",  required:true,  placeholder:"contoh nilai" },
+      { name:"param1",    kind:"query", required:true,  placeholder:"contoh nilai" },
+      { name:"param2",    kind:"body",  required:false, placeholder:"opsional" }
     ],
-    render: "json"               // "json" atau "tiktok", atau tambah renderer baru di RESPONSE_RENDERERS
+    render: "json"               // "json", "tiktok", "cai-search", "cai-session", "cai-chat", atau renderer baru di RESPONSE_RENDERERS
   },
   */
 ];
@@ -327,6 +454,40 @@ const ENDPOINTS = [
    ============================================================ */
 let activeId = ENDPOINTS[0].id;
 
+// Sesi Character.AI aktif (in-memory saja, tidak disimpan ke browser storage).
+// Dipakai untuk otomatis mengisi field "id" / "charId" di endpoint session lainnya.
+let activeSession = null; // { sessionId, charId, chatId }
+let lastCharId = null;
+
+const AUTO_FILL = {
+  id: () => (activeSession ? activeSession.sessionId : ""),
+  charId: () => (lastCharId || (activeSession ? activeSession.charId : "") || "")
+};
+
+function updateSessionChip(){
+  const chip = document.getElementById("sessionChip");
+  if(!chip) return;
+  if(activeSession && activeSession.sessionId){
+    chip.style.display = "flex";
+    chip.innerHTML = `<span class="pd"></span> Sesi: ${escHtml(activeSession.sessionId.slice(0,8))}…`;
+  } else {
+    chip.style.display = "none";
+    chip.innerHTML = "";
+  }
+}
+document.addEventListener("click", (e) => {
+  if(e.target.closest("#sessionChip") && activeSession){
+    navigator.clipboard?.writeText(activeSession.sessionId);
+    showToast("ok", "Session ID disalin");
+  }
+});
+
+// Dipanggil dari tombol "Pakai ID" pada hasil pencarian karakter.
+window.__caiUseCharId = function(id){
+  lastCharId = id;
+  navigator.clipboard?.writeText(id);
+  showToast("ok", "Character ID disalin: " + id);
+};
 
 function groupByCategory(list){
   const map = new Map();
@@ -369,21 +530,109 @@ function selectEndpoint(id){
   renderMain(ep);
 }
 
+/* ------------------------------------------------------------
+   Param helpers — path/query/body aware
+   ------------------------------------------------------------ */
+function paramKind(p){ return p.kind || "query"; }
+
+// Resolusi path + query + body memakai NILAI CONTOH (placeholder), untuk dokumentasi/snippet.
+function buildExample(ep){
+  let resolvedPath = ep.path;
+  const queryParts = [];
+  const bodyObj = {};
+  ep.params.forEach(p => {
+    const kind = paramKind(p);
+    const val = p.type === "checkbox" ? true : (p.placeholder || "nilai");
+    if(kind === "path") resolvedPath = resolvedPath.replace(":" + p.name, encodeURIComponent(val));
+    else if(kind === "query") queryParts.push(`${p.name}=${encodeURIComponent(val)}`);
+    else if(kind === "body") bodyObj[p.name] = val;
+  });
+  const url = `${API_BASE_URL}${resolvedPath}${queryParts.length ? "?" + queryParts.join("&") : ""}`;
+  return { url, body: Object.keys(bodyObj).length ? bodyObj : null };
+}
+
+// Resolusi path + query + body memakai NILAI DARI FORM konsol, untuk request sungguhan.
+function buildRequestFromForm(ep){
+  let resolvedPath = ep.path;
+  const queryParts = [];
+  const bodyObj = {};
+  let missing = null;
+
+  ep.params.forEach(p => {
+    const kind = paramKind(p);
+    const el = document.querySelector(`#consoleForm [data-param="${cssEscape(p.name)}"]`);
+    const val = el ? (p.type === "checkbox" ? el.checked : el.value.trim()) : (p.type === "checkbox" ? false : "");
+
+    if(p.required && p.type !== "checkbox" && !val) missing = p.name;
+
+    if(kind === "path") resolvedPath = resolvedPath.replace(":" + p.name, encodeURIComponent(val || `:${p.name}`));
+    else if(kind === "query") { if(val) queryParts.push(`${encodeURIComponent(p.name)}=${encodeURIComponent(val)}`); }
+    else if(kind === "body") bodyObj[p.name] = p.type === "checkbox" ? !!val : val;
+  });
+
+  const url = `${API_BASE_URL}${resolvedPath}${queryParts.length ? "?" + queryParts.join("&") : ""}`;
+  const body = Object.keys(bodyObj).length ? bodyObj : null;
+  return { url, body, missing };
+}
+
+function cssEscape(str){
+  return String(str).replace(/(["\\])/g, "\\$1");
+}
+
+function renderField(p){
+  const kind = paramKind(p);
+  const auto = AUTO_FILL[p.name] ? AUTO_FILL[p.name]() : "";
+  const kindLabel = kind === "path" ? "path" : kind === "body" ? "body" : "query";
+
+  if(p.type === "checkbox"){
+    return `
+      <div class="field">
+        <label>${escHtml(p.name)} <span class="loc-badge ${kind}">${kindLabel}</span></label>
+        <label class="chk-inline">
+          <input type="checkbox" data-param="${escHtml(p.name)}" />
+          <span>${escHtml(p.placeholder || "aktifkan")}</span>
+        </label>
+      </div>`;
+  }
+
+  return `
+    <div class="field">
+      <label>${escHtml(p.name)} ${p.required ? '<span class="req">wajib</span>' : ''} <span class="loc-badge ${kind}">${kindLabel}</span></label>
+      <input type="text" data-param="${escHtml(p.name)}" placeholder="${escHtml(p.placeholder||'')}" value="${escHtml(auto)}" />
+      ${auto ? `<div class="field-hint">Terisi otomatis dari sesi aktif — ganti bila perlu.</div>` : ""}
+    </div>`;
+}
+
 function renderMain(ep){
   const fullUrl = `${API_BASE_URL}${ep.path}`;
-  const paramRows = ep.params.map(p => `
+
+  const paramRows = ep.params.map(p => {
+    const kind = paramKind(p);
+    const kindLabel = kind === "path" ? "path" : kind === "body" ? "body" : "query";
+    return `
     <tr>
       <td><code>${escHtml(p.name)}</code></td>
       <td>${p.required ? '<span class="param-req">WAJIB</span>' : '<span class="param-opt">opsional</span>'}</td>
+      <td><span class="loc-badge ${kind}">${kindLabel}</span></td>
       <td class="param-desc">${escHtml(p.placeholder || "")}</td>
-    </tr>`).join("");
+    </tr>`;
+  }).join("");
 
-  const exampleQuery = ep.params.filter(p=>p.required).map(p=>`${p.name}=${encodeURIComponent(p.placeholder||"nilai")}`).join("&");
-  const exampleUrl = `${fullUrl}${exampleQuery ? "?"+exampleQuery : ""}`;
+  const ex = buildExample(ep);
 
-  const curl = `curl -s "${exampleUrl}"`;
-  const js = `fetch("${exampleUrl}")\n  .then(res => res.json())\n  .then(data => console.log(data))\n  .catch(err => console.error(err));`;
-  const py = `import requests\n\nres = requests.get("${fullUrl}", params={\n${ep.params.map(p=>`    "${p.name}": "${p.placeholder||''}"`).join(",\n")}\n})\nprint(res.json())`;
+  const curl = ex.body
+    ? `curl -s -X ${ep.method} "${ex.url}" \\\n  -H "Content-Type: application/json" \\\n  -d '${JSON.stringify(ex.body)}'`
+    : (ep.method === "GET" ? `curl -s "${ex.url}"` : `curl -s -X ${ep.method} "${ex.url}"`);
+
+  const js = ex.body
+    ? `fetch("${ex.url}", {\n  method: "${ep.method}",\n  headers: { "Content-Type": "application/json" },\n  body: JSON.stringify(${JSON.stringify(ex.body)})\n})\n  .then(res => res.json())\n  .then(data => console.log(data))\n  .catch(err => console.error(err));`
+    : `fetch("${ex.url}"${ep.method !== "GET" ? `, { method: "${ep.method}" }` : ""})\n  .then(res => res.json())\n  .then(data => console.log(data))\n  .catch(err => console.error(err));`;
+
+  const py = ex.body
+    ? `import requests\n\nres = requests.${ep.method.toLowerCase()}(\n    "${ex.url}",\n    json=${JSON.stringify(ex.body)}\n)\nprint(res.json())`
+    : `import requests\n\nres = requests.${ep.method.toLowerCase()}("${ex.url}")\nprint(res.json())`;
+
+  const hasBodyParams = ep.params.some(p => paramKind(p) === "body");
 
   document.getElementById("mainContent").innerHTML = `
     <div class="crumb">Hikaru REST API <i class="fas fa-chevron-right" style="font-size:.6rem;margin:0 4px;"></i> <span>${escHtml(ep.category)}</span></div>
@@ -399,8 +648,8 @@ function renderMain(ep){
         <div class="doc-block">
           <div class="doc-label">Parameter</div>
           <table class="param-table">
-            <thead><tr><th>Nama</th><th>Wajib</th><th>Contoh</th></tr></thead>
-            <tbody>${paramRows || '<tr><td colspan="3" class="param-desc">Tidak ada parameter.</td></tr>'}</tbody>
+            <thead><tr><th>Nama</th><th>Wajib</th><th>Lokasi</th><th>Contoh</th></tr></thead>
+            <tbody>${paramRows || '<tr><td colspan="4" class="param-desc">Tidak ada parameter.</td></tr>'}</tbody>
           </table>
         </div>
 
@@ -440,14 +689,11 @@ function renderMain(ep){
         </div>
         <div class="console-url">
           <span class="method-pill ${ep.method.toLowerCase()}">${ep.method}</span>
-          <span id="consoleUrlText">${escHtml(API_BASE_URL + ep.path)}</span>
+          <span id="consoleUrlText">${escHtml(fullUrl)}</span>
         </div>
+        ${hasBodyParams ? `<div class="console-body-preview" id="consoleBodyPreview">{}</div>` : ""}
         <div class="console-form" id="consoleForm">
-          ${ep.params.map(p => `
-            <div class="field">
-              <label>${escHtml(p.name)} ${p.required ? '<span class="req">wajib</span>' : ''}</label>
-              <input type="text" data-param="${escHtml(p.name)}" placeholder="${escHtml(p.placeholder||'')}" />
-            </div>`).join("")}
+          ${ep.params.map(p => renderField(p)).join("")}
           <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i> Kirim Request</button>
         </div>
         <div class="console-response">
@@ -477,18 +723,29 @@ function renderMain(ep){
     navigator.clipboard.writeText(active).then(()=>{ showToast("ok","Kode disalin"); });
   });
 
-  // live console url preview
-  const urlTextEl = document.getElementById("consoleUrlText");
-  document.querySelectorAll('#consoleForm input').forEach(inp=>{
-    inp.addEventListener("input", updatePreviewUrl);
+  // live console url + body preview
+  document.querySelectorAll('#consoleForm [data-param]').forEach(inp=>{
+    inp.addEventListener("input", updatePreview);
+    inp.addEventListener("change", updatePreview);
   });
-  function updatePreviewUrl(){
-    const parts = [];
-    document.querySelectorAll('#consoleForm input').forEach(i=>{
-      if(i.value.trim()) parts.push(`${i.dataset.param}=${encodeURIComponent(i.value.trim())}`);
+  function updatePreview(){
+    const urlTextEl = document.getElementById("consoleUrlText");
+    const bodyPreviewEl = document.getElementById("consoleBodyPreview");
+    let resolvedPath = ep.path;
+    const queryParts = [];
+    const bodyObj = {};
+    ep.params.forEach(p=>{
+      const kind = paramKind(p);
+      const el = document.querySelector(`#consoleForm [data-param="${cssEscape(p.name)}"]`);
+      const val = el ? (p.type === "checkbox" ? el.checked : el.value.trim()) : "";
+      if(kind === "path") resolvedPath = resolvedPath.replace(":" + p.name, val ? encodeURIComponent(val) : ":" + p.name);
+      else if(kind === "query"){ if(val) queryParts.push(`${encodeURIComponent(p.name)}=${encodeURIComponent(val)}`); }
+      else if(kind === "body") bodyObj[p.name] = p.type === "checkbox" ? !!val : val;
     });
-    urlTextEl.textContent = API_BASE_URL + ep.path + (parts.length ? "?"+parts.join("&") : "");
+    urlTextEl.textContent = API_BASE_URL + resolvedPath + (queryParts.length ? "?" + queryParts.join("&") : "");
+    if(bodyPreviewEl) bodyPreviewEl.textContent = JSON.stringify(bodyObj, null, 2);
   }
+  updatePreview();
 
   document.getElementById("sendBtn").addEventListener("click", () => sendRequest(ep));
 }
@@ -502,22 +759,12 @@ async function sendRequest(ep){
   const respStatus = document.getElementById("respStatus");
   const trace = document.getElementById("trace");
 
-  const query = new URLSearchParams();
-  let missing = null;
-  document.querySelectorAll('#consoleForm input').forEach(inp => {
-    const val = inp.value.trim();
-    if(val) query.set(inp.dataset.param, val);
-    else if(inp.previousElementSibling === null){}
-  });
-  for(const p of ep.params){
-    if(p.required && !query.get(p.name)){ missing = p.name; }
-  }
+  const { url, body, missing } = buildRequestFromForm(ep);
   if(missing){
     showToast("err", `Parameter "${missing}" wajib diisi`);
     return;
   }
 
-  const url = `${API_BASE_URL}${ep.path}?${query.toString()}`;
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Mengirim...';
   trace.classList.add("live");
@@ -525,7 +772,11 @@ async function sendRequest(ep){
   respBody.innerHTML = `<div class="resp-placeholder"><i class="fas fa-circle-notch fa-spin"></i><p>Menunggu response...</p></div>`;
 
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, {
+      method: ep.method,
+      headers: body ? { "Content-Type": "application/json" } : undefined,
+      body: body ? JSON.stringify(body) : undefined
+    });
     const data = await res.json();
     respStatus.style.display = "inline-block";
     respStatus.textContent = `HTTP ${res.status}`;
@@ -533,6 +784,7 @@ async function sendRequest(ep){
 
     const renderer = RESPONSE_RENDERERS[ep.render] || RESPONSE_RENDERERS.json;
     respBody.innerHTML = renderer(data);
+    handleSessionSideEffects(ep, data, res.ok);
     showToast(res.ok ? "ok" : "err", res.ok ? "Response diterima" : "Server mengembalikan error");
   } catch(err){
     respStatus.style.display = "inline-block";
@@ -544,6 +796,28 @@ async function sendRequest(ep){
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Request';
     setTimeout(()=>trace.classList.remove("live"), 900);
+  }
+}
+
+// Menjaga "sesi aktif" tetap sinkron dengan hasil endpoint Character.AI,
+// supaya field id/charId di endpoint lain otomatis terisi.
+function handleSessionSideEffects(ep, data, ok){
+  if(!ok) return;
+  if(ep.id === "cai-session-create" && data?.result?.sessionId){
+    activeSession = {
+      sessionId: data.result.sessionId,
+      charId: data.result.charId,
+      chatId: data.result.chatId
+    };
+    lastCharId = data.result.charId;
+    updateSessionChip();
+  }
+  if(ep.id === "cai-session-delete" && activeSession){
+    const usedId = document.querySelector('#consoleForm [data-param="id"]')?.value.trim();
+    if(usedId && usedId === activeSession.sessionId){
+      activeSession = null;
+      updateSessionChip();
+    }
   }
 }
 
@@ -575,6 +849,42 @@ const RESPONSE_RENDERERS = {
           ${links.map(l=>`<a class="tt-link" href="${l.u}" target="_blank" rel="noopener"><i class="fas fa-download"></i> ${l.label}</a>`).join("") || `<div style="color:#8FA3B0;font-size:.78rem;">Tidak ada tautan unduhan pada response ini.</div>`}
         </div>
       </div>`;
+  },
+  "cai-search"(data){
+    const raw = data.result?.characters || data.result?.results || data.result || [];
+    const arr = Array.isArray(raw) ? raw : [];
+    if(!arr.length) return `<div class="cai-empty">Tidak ada karakter ditemukan pada response ini.</div>${RESPONSE_RENDERERS.json(data)}`;
+    const rows = arr.slice(0, 20).map(c => {
+      const id = c.character_id || c.external_id || c.id || "";
+      const name = c.title || c.name || c.participant__name || "Tanpa nama";
+      return `
+        <div class="cai-item">
+          <div>
+            <div class="cai-item-name">${escHtml(name)}</div>
+            <div class="cai-item-id">${escHtml(id)}</div>
+          </div>
+          <button class="cai-item-btn" onclick="window.__caiUseCharId('${String(id).replace(/'/g,"\\'")}')">Pakai ID</button>
+        </div>`;
+    }).join("");
+    return `<div class="cai-list">${rows}</div>`;
+  },
+  "cai-session"(data){
+    const r = data.result || {};
+    return `
+      <div class="cai-ticket">
+        <div class="row"><b>session_id</b><span>${escHtml(r.sessionId||"")}</span></div>
+        <div class="row"><b>char_id</b><span>${escHtml(r.charId||"")}</span></div>
+        <div class="row"><b>chat_id</b><span>${escHtml(r.chatId||"")}</span></div>
+      </div>
+      ${r.greeting ? `<div class="cai-greeting">${escHtml(r.greeting)}</div>` : `<div class="cai-empty">Tidak ada pesan pembuka dari karakter.</div>`}
+    `;
+  },
+  "cai-chat"(data){
+    const r = data.result || {};
+    return `
+      <div class="cai-bubble">${escHtml(r.reply || "(tidak ada balasan)")}</div>
+      <div class="cai-bubble-meta">turn_id: ${escHtml(r.turnId || "—")} · candidate_id: ${escHtml(r.candidateId || "—")}</div>
+    `;
   }
 };
 
@@ -594,18 +904,18 @@ function syntaxHighlightJson(json){
   });
 }
 function highlightCurl(str){
-  return escHtml(str).replace(/^(curl)/, '<span class="sf">$1</span>').replace(/(-s)/, '<span class="sk">$1</span>').replace(/(&quot;.*?&quot;)/, m=>`<span class="ss">${m}</span>`);
+  return escHtml(str).replace(/^(curl)/, '<span class="sf">$1</span>').replace(/(-s|-X\s+\w+|-H)/g, '<span class="sk">$1</span>').replace(/(&quot;.*?&quot;)/g, m=>`<span class="ss">${m}</span>`);
 }
 function highlightJs(str){
   let s = escHtml(str);
-  s = s.replace(/\b(fetch|then|catch|console|log|error)\b/g, '<span class="sf">$1</span>');
+  s = s.replace(/\b(fetch|then|catch|console|log|error|method|headers|body|JSON|stringify)\b/g, '<span class="sf">$1</span>');
   s = s.replace(/(&quot;.*?&quot;)/g, '<span class="ss">$1</span>');
   return s;
 }
 function highlightPy(str){
   let s = escHtml(str);
   s = s.replace(/\b(import|print)\b/g, '<span class="sk">$1</span>');
-  s = s.replace(/\b(requests|get)\b/g, '<span class="sf">$1</span>');
+  s = s.replace(/\b(requests|get|post|delete|json)\b/g, '<span class="sf">$1</span>');
   s = s.replace(/(&quot;.*?&quot;)/g, '<span class="ss">$1</span>');
   return s;
 }
@@ -629,6 +939,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderSidebar();
   selectEndpoint(activeId);
+  updateSessionChip();
 
   document.getElementById("endpointSearch").addEventListener("input", e => renderSidebar(e.target.value));
   document.addEventListener("keydown", e => {
