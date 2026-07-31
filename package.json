@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.29.1",
+    "cainode": "^1.2.4",
     "connect-timeout": "^1.9.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
