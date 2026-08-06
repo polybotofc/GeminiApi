@@ -19,6 +19,13 @@ const PORT = process.env.PORT || 3000;
 // =========================================================
 // 2. AI SETUP
 // =========================================================
+if (!process.env.GEMINI_API_KEY) {
+  console.warn('[WARN] GEMINI_API_KEY is not set — Gemini calls will fail.');
+}
+if (!process.env.GROQ_API_KEY) {
+  console.warn('[WARN] GROQ_API_KEY is not set — Groq fallback will be unavailable.');
+}
+
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -32,8 +39,10 @@ async function generateAI(prompt, systemPrompt = '') {
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: { systemInstruction: systemPrompt }
     });
+    const text = response?.text;
+    if (!text) throw new Error('Gemini returned an empty response.');
     console.log('[AI] Gemini berhasil');
-    return response.text;
+    return text;
   } catch (geminiError) {
     const isQuotaError = geminiError?.status === 429 ||
       geminiError?.message?.includes('quota') ||
@@ -52,8 +61,10 @@ async function generateAI(prompt, systemPrompt = '') {
       messages
     });
 
+    const content = groqRes?.choices?.[0]?.message?.content;
+    if (!content) throw new Error('Groq returned an empty response.');
     console.log('[AI] Groq berhasil (fallback)');
-    return groqRes.choices[0].message.content;
+    return content;
   }
 }
 
@@ -82,6 +93,10 @@ async function getYoutubeLinks(videoId, type = 'mp4') {
     }),
     signal: AbortSignal.timeout(10000)
   });
+
+  if (!analyzeRes.ok) {
+    throw new Error(`y2mate analyze request failed with status ${analyzeRes.status}`);
+  }
 
   const analyzeData = await analyzeRes.json();
   if (!analyzeData?.vid) throw new Error('Gagal menganalisis video.');
@@ -116,9 +131,10 @@ async function getYoutubeLinks(videoId, type = 'mp4') {
       }
     }
     if (!chosenKey) {
-      const first = Object.entries(links)[0];
-      chosenKey = first[0];
-      chosenData = first[1];
+      const entries = Object.entries(links);
+      if (entries.length === 0) throw new Error('No download formats available for this video.');
+      chosenKey = entries[0][0];
+      chosenData = entries[0][1];
     }
   }
 
@@ -137,6 +153,10 @@ async function getYoutubeLinks(videoId, type = 'mp4') {
     }),
     signal: AbortSignal.timeout(15000)
   });
+
+  if (!convertRes.ok) {
+    throw new Error(`y2mate convert request failed with status ${convertRes.status}`);
+  }
 
   const convertData = await convertRes.json();
   if (!convertData?.dlink) throw new Error('Gagal mendapatkan link download.');
@@ -309,7 +329,8 @@ app.post('/generate', async (req, res) => {
     res.json({ status: 'success', generated_text: text });
   } catch (error) {
     console.error('Error POST /generate:', error);
-    res.status(500).json({ status: 'error', message: 'Gagal memproses AI' });
+    const statusCode = error?.status === 429 ? 429 : 500;
+    res.status(statusCode).json({ status: 'error', message: statusCode === 429 ? 'Rate limit exceeded. Please try again later.' : 'Gagal memproses AI' });
   }
 });
 
@@ -334,7 +355,8 @@ Jawab dengan ramah dan singkat.`;
     res.json({ status: 'success', generated_text: text });
   } catch (error) {
     console.error('Error GET /response:', error);
-    res.status(500).json({ status: 'error', message: 'Gagal memproses AI' });
+    const statusCode = error?.status === 429 ? 429 : 500;
+    res.status(statusCode).json({ status: 'error', message: statusCode === 429 ? 'Rate limit exceeded. Please try again later.' : 'Gagal memproses AI' });
   }
 });
 
@@ -350,19 +372,29 @@ app.get('/tiktok', async (req, res) => {
   try {
     const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
     const response = await fetch(apiUrl);
+
+    if (!response.ok) {
+      return res.status(502).json({ status: 'error', message: `TikTok API returned status ${response.status}` });
+    }
+
     const data = await response.json();
 
     if (data.code !== 0) return res.status(404).json({ status: 'error', message: 'Video tidak ditemukan' });
 
+    const videoData = data?.data;
+    if (!videoData) {
+      return res.status(502).json({ status: 'error', message: 'TikTok API returned an unexpected response structure.' });
+    }
+
     res.json({
       status: 'success',
       result: {
-        title: data.data.title,
-        author: data.data.author.nickname,
-        videoUrl: data.data.play,
-        noWatermark: data.data.wmplay,
-        audio: data.data.music,
-        thumbnail: data.data.cover
+        title: videoData.title,
+        author: videoData.author?.nickname ?? 'Unknown',
+        videoUrl: videoData.play,
+        noWatermark: videoData.wmplay,
+        audio: videoData.music,
+        thumbnail: videoData.cover
       }
     });
   } catch (error) {
@@ -627,7 +659,17 @@ app.use((req, res, next) => {
 // =========================================================
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ status: 'error', message: 'Invalid JSON in request body.' });
+  }
+
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ status: 'error', message: 'Request body too large.' });
+  }
+
+  const statusCode = err.status || err.statusCode || 500;
+  res.status(statusCode).json({ status: 'error', message: statusCode < 500 ? err.message : 'Internal Server Error' });
 });
 // =========================================================
 // 14. START SERVER (LOCAL)
