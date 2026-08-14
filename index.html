@@ -239,6 +239,14 @@ code,pre{font-family:var(--mono);}
 .cai-bubble-meta{margin-top:8px; font-family:var(--mono); font-size:.66rem; color:#6B7A87;}
 .cai-empty{color:#8FA3B0; font-family:var(--sans); font-size:.8rem; padding:6px 2px;}
 
+/* ---------- media (image/download link) renderer ---------- */
+.media-card{display:flex; flex-direction:column; gap:10px;}
+.media-thumb{width:100%; border-radius:8px; max-height:220px; object-fit:cover; border:1px solid rgba(255,255,255,.1);}
+.media-title{font-family:var(--sans); font-size:.82rem; color:#EAF0F4; line-height:1.5;}
+.media-sub{font-size:.74rem; color:#8FA3B0;}
+.media-link{display:flex; align-items:center; justify-content:center; gap:8px; padding:9px; border-radius:7px; font-family:var(--sans); font-size:.78rem; font-weight:600; background:var(--teal); color:#08201F;}
+.media-link:hover{filter:brightness(1.08);}
+
 /* ---------- toast ---------- */
 .toast-container{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; gap:8px; z-index:1000; pointer-events:none;}
 .toast{display:flex; align-items:center; gap:10px; padding:11px 18px; background:var(--ink); color:#fff; border-radius:8px; font-family:var(--mono); font-size:.78rem; box-shadow:0 8px 24px rgba(0,0,0,.25); animation:tin .3s ease forwards; pointer-events:auto;}
@@ -330,6 +338,99 @@ const ENDPOINTS = [
     render: "json"
   },
   {
+    id: "ai-generate",
+    category: "Artificial Intelligence",
+    name: "AI Generate (raw)",
+    method: "POST",
+    path: "/generate",
+    description: "Kirim prompt bebas ke model AI tanpa persona, cocok untuk kebutuhan generatif umum (bukan format chat).",
+    params: [
+      { name: "prompt", kind: "body", required: true, placeholder: "Tulis puisi tentang hujan" }
+    ],
+    render: "json"
+  },
+  {
+    id: "ai-image",
+    category: "Artificial Intelligence",
+    name: "AI Image Generator",
+    method: "GET",
+    path: "/ai/image",
+    description: "Hasilkan gambar dari deskripsi teks (text-to-image) menggunakan model AI gratis.",
+    params: [
+      { name: "prompt", required: true, placeholder: "kucing oranye memakai jas astronot" },
+      { name: "width", required: false, placeholder: "1024" },
+      { name: "height", required: false, placeholder: "1024" }
+    ],
+    render: "ai-image"
+  },
+  {
+    id: "ai-summarize",
+    category: "Artificial Intelligence",
+    name: "AI Summarizer",
+    method: "POST",
+    path: "/ai/summarize",
+    description: "Ringkas teks panjang menjadi versi singkat, padat, dan tetap mempertahankan informasi inti.",
+    params: [
+      { name: "text", kind: "body", required: true, placeholder: "Tempel teks panjang di sini..." },
+      { name: "length", kind: "body", required: false, placeholder: "short / normal / long" }
+    ],
+    render: "json"
+  },
+  {
+    id: "ai-translate",
+    category: "Artificial Intelligence",
+    name: "AI Translator",
+    method: "POST",
+    path: "/ai/translate",
+    description: "Terjemahkan teks ke bahasa tujuan menggunakan AI.",
+    params: [
+      { name: "text", kind: "body", required: true, placeholder: "Selamat pagi, apa kabar?" },
+      { name: "target", kind: "body", required: true, placeholder: "English" },
+      { name: "source", kind: "body", required: false, placeholder: "Indonesian" }
+    ],
+    render: "json"
+  },
+  {
+    id: "ai-detect-language",
+    category: "Artificial Intelligence",
+    name: "AI Language Detector",
+    method: "POST",
+    path: "/ai/detect-language",
+    description: "Deteksi bahasa dari sebuah teks beserta kode ISO dan tingkat keyakinannya.",
+    params: [
+      { name: "text", kind: "body", required: true, placeholder: "Bonjour, comment ça va?" }
+    ],
+    render: "json"
+  },
+  {
+    id: "ai-rewrite",
+    category: "Artificial Intelligence",
+    name: "AI Text Rewriter",
+    method: "POST",
+    path: "/ai/rewrite",
+    description: "Tulis ulang teks dengan gaya tertentu (lebih formal, santai, singkat, dll) tanpa mengubah makna.",
+    params: [
+      { name: "text", kind: "body", required: true, placeholder: "gw lg males banget hari ini" },
+      { name: "style", kind: "body", required: false, placeholder: "lebih formal dan sopan" }
+    ],
+    render: "json"
+  },
+  {
+    id: "ai-prompt-generator",
+    category: "Artificial Intelligence",
+    name: "AI Prompt Generator",
+    method: "POST",
+    path: "/ai/prompt-generator",
+    description: "Hasilkan beberapa variasi prompt kreatif dan detail dari sebuah topik, misalnya untuk generator gambar AI.",
+    params: [
+      { name: "topic", kind: "body", required: true, placeholder: "kota cyberpunk di malam hari" },
+      { name: "type", kind: "body", required: false, placeholder: "gambar AI (text-to-image)" }
+    ],
+    render: "json"
+  },
+
+  /* ---------------- Media Downloader ---------------- */
+  {
     id: "tiktok-downloader",
     category: "Media Downloader",
     name: "TikTok Downloader",
@@ -340,6 +441,437 @@ const ENDPOINTS = [
       { name: "url", required: true, placeholder: "https://vt.tiktok.com/ZSjXXXXX/" }
     ],
     render: "tiktok"
+  },
+  {
+    id: "instagram-downloader",
+    category: "Media Downloader",
+    name: "Instagram Downloader",
+    method: "GET",
+    path: "/instagram",
+    description: "Ambil foto/video dari post, reel, atau IGTV Instagram publik.",
+    params: [
+      { name: "url", required: true, placeholder: "https://www.instagram.com/p/XXXXXXXXX/" }
+    ],
+    render: "media"
+  },
+  {
+    id: "youtube-mp3",
+    category: "Media Downloader",
+    name: "YouTube Downloader (MP3)",
+    method: "GET",
+    path: "/ytmp3",
+    description: "Unduh audio (MP3) dari video YouTube.",
+    params: [
+      { name: "url", required: true, placeholder: "https://www.youtube.com/watch?v=XXXXXXXXXXX" }
+    ],
+    render: "media"
+  },
+  {
+    id: "youtube-mp4",
+    category: "Media Downloader",
+    name: "YouTube Downloader (MP4)",
+    method: "GET",
+    path: "/ytmp4",
+    description: "Unduh video (MP4) dari YouTube, kualitas otomatis dipilih sekitar 720p.",
+    params: [
+      { name: "url", required: true, placeholder: "https://www.youtube.com/watch?v=XXXXXXXXXXX" }
+    ],
+    render: "media"
+  },
+  {
+    id: "youtube-info",
+    category: "Media Downloader",
+    name: "YouTube Video Info",
+    method: "GET",
+    path: "/youtube/info",
+    description: "Ambil judul, nama channel, dan thumbnail dari sebuah video YouTube tanpa mengunduhnya.",
+    params: [
+      { name: "url", required: true, placeholder: "https://www.youtube.com/watch?v=XXXXXXXXXXX" }
+    ],
+    render: "json"
+  },
+  {
+    id: "facebook-downloader",
+    category: "Media Downloader",
+    name: "Facebook Downloader",
+    method: "GET",
+    path: "/facebook",
+    description: "Ambil video dari post Facebook publik.",
+    params: [
+      { name: "url", required: true, placeholder: "https://www.facebook.com/watch/?v=XXXXXXXXXXX" }
+    ],
+    render: "media"
+  },
+  {
+    id: "twitter-downloader",
+    category: "Media Downloader",
+    name: "Twitter/X Downloader",
+    method: "GET",
+    path: "/twitter",
+    description: "Ambil foto/video dari sebuah tweet (status) di Twitter/X.",
+    params: [
+      { name: "url", required: true, placeholder: "https://x.com/username/status/1234567890" }
+    ],
+    render: "json"
+  },
+  {
+    id: "pinterest-downloader",
+    category: "Media Downloader",
+    name: "Pinterest Downloader",
+    method: "GET",
+    path: "/pinterest",
+    description: "Ambil gambar/video dari sebuah Pin Pinterest.",
+    params: [
+      { name: "url", required: true, placeholder: "https://pin.it/XXXXXXX" }
+    ],
+    render: "media"
+  },
+  {
+    id: "spotify-track-info",
+    category: "Media Downloader",
+    name: "Spotify Track Info",
+    method: "GET",
+    path: "/spotify",
+    description: "Ambil judul, artis, dan thumbnail dari sebuah track/album/playlist Spotify.",
+    params: [
+      { name: "url", required: true, placeholder: "https://open.spotify.com/track/XXXXXXXXXXXXXXXXXXXXXX" }
+    ],
+    render: "json"
+  },
+
+  /* ---------------- Image & Media Tools ---------------- */
+  {
+    id: "image-upscale",
+    category: "Image & Media Tools",
+    name: "Image Upscaler",
+    method: "POST",
+    path: "/image/upscale",
+    description: "Perbesar resolusi gambar. Menggunakan AI upscaling jika API key dikonfigurasi di server, otomatis fallback ke resize berkualitas tinggi bila tidak.",
+    params: [
+      { name: "imageUrl", kind: "body", required: true, placeholder: "https://contoh.com/gambar.jpg" },
+      { name: "scale", kind: "body", required: false, placeholder: "2" }
+    ],
+    render: "json"
+  },
+  {
+    id: "image-compress",
+    category: "Image & Media Tools",
+    name: "Image Compressor",
+    method: "POST",
+    path: "/image/compress",
+    description: "Kompres ukuran file gambar dengan kualitas yang bisa diatur.",
+    params: [
+      { name: "imageUrl", kind: "body", required: true, placeholder: "https://contoh.com/gambar.jpg" },
+      { name: "quality", kind: "body", required: false, placeholder: "70" },
+      { name: "format", kind: "body", required: false, placeholder: "jpeg / png / webp" }
+    ],
+    render: "json"
+  },
+  {
+    id: "image-convert",
+    category: "Image & Media Tools",
+    name: "Image Converter",
+    method: "POST",
+    path: "/image/convert",
+    description: "Konversi gambar ke format lain (PNG, JPEG, WEBP, AVIF, TIFF, GIF).",
+    params: [
+      { name: "imageUrl", kind: "body", required: true, placeholder: "https://contoh.com/gambar.png" },
+      { name: "format", kind: "body", required: true, placeholder: "webp" }
+    ],
+    render: "json"
+  },
+  {
+    id: "image-metadata",
+    category: "Image & Media Tools",
+    name: "Image Metadata",
+    method: "POST",
+    path: "/image/metadata",
+    description: "Baca metadata teknis gambar (dimensi, format, ruang warna) beserta data EXIF bila tersedia.",
+    params: [
+      { name: "imageUrl", kind: "body", required: true, placeholder: "https://contoh.com/gambar.jpg" }
+    ],
+    render: "json"
+  },
+  {
+    id: "website-screenshot",
+    category: "Image & Media Tools",
+    name: "Website Screenshot",
+    method: "GET",
+    path: "/screenshot",
+    description: "Ambil tangkapan layar dari sebuah halaman website.",
+    params: [
+      { name: "url", required: true, placeholder: "https://example.com" },
+      { name: "width", required: false, placeholder: "1280" }
+    ],
+    render: "screenshot"
+  },
+  {
+    id: "qrcode-generator",
+    category: "Image & Media Tools",
+    name: "QR Code Generator",
+    method: "GET",
+    path: "/qrcode",
+    description: "Buat kode QR dari teks atau URL apa pun.",
+    params: [
+      { name: "text", required: true, placeholder: "https://example.com" },
+      { name: "size", required: false, placeholder: "300" }
+    ],
+    render: "qrcode"
+  },
+
+  /* ---------------- Utility ---------------- */
+  {
+    id: "url-metadata",
+    category: "Utility",
+    name: "URL Metadata",
+    method: "GET",
+    path: "/url/metadata",
+    description: "Ambil judul, deskripsi, dan gambar preview (Open Graph) dari sebuah URL.",
+    params: [
+      { name: "url", required: true, placeholder: "https://example.com" }
+    ],
+    render: "json"
+  },
+  {
+    id: "url-shortener",
+    category: "Utility",
+    name: "URL Shortener",
+    method: "POST",
+    path: "/url/shorten",
+    description: "Perpendek sebuah URL panjang menjadi tautan singkat.",
+    params: [
+      { name: "url", kind: "body", required: true, placeholder: "https://example.com/artikel/judul-yang-sangat-panjang" }
+    ],
+    render: "json"
+  },
+  {
+    id: "ip-information",
+    category: "Utility",
+    name: "IP Information",
+    method: "GET",
+    path: "/ip-info",
+    description: "Lihat informasi geolokasi dan ISP dari sebuah alamat IP. Kosongkan untuk melihat IP server sendiri.",
+    params: [
+      { name: "ip", required: false, placeholder: "8.8.8.8" }
+    ],
+    render: "json"
+  },
+  {
+    id: "weather-information",
+    category: "Utility",
+    name: "Weather Information",
+    method: "GET",
+    path: "/weather",
+    description: "Lihat cuaca terkini berdasarkan nama kota, atau koordinat lintang/bujur.",
+    params: [
+      { name: "city", required: false, placeholder: "Jakarta" },
+      { name: "lat", required: false, placeholder: "-6.2" },
+      { name: "lon", required: false, placeholder: "106.8" }
+    ],
+    render: "json"
+  },
+  {
+    id: "timestamp-converter",
+    category: "Utility",
+    name: "Timestamp Converter",
+    method: "GET",
+    path: "/timestamp",
+    description: "Konversi antara Unix timestamp dan format tanggal yang mudah dibaca.",
+    params: [
+      { name: "timestamp", required: false, placeholder: "1700000000" },
+      { name: "date", required: false, placeholder: "2024-01-01T00:00:00Z" }
+    ],
+    render: "json"
+  },
+  {
+    id: "password-generator",
+    category: "Utility",
+    name: "Password Generator",
+    method: "GET",
+    path: "/password",
+    description: "Buat password acak yang kuat dengan panjang dan jenis karakter yang bisa diatur.",
+    params: [
+      { name: "length", required: false, placeholder: "16" },
+      { name: "count", required: false, placeholder: "1" },
+      { name: "symbols", required: false, placeholder: "true / false" }
+    ],
+    render: "json"
+  },
+  {
+    id: "uuid-generator",
+    category: "Utility",
+    name: "UUID Generator",
+    method: "GET",
+    path: "/uuid",
+    description: "Hasilkan satu atau beberapa UUID v4 acak.",
+    params: [
+      { name: "count", required: false, placeholder: "1" }
+    ],
+    render: "json"
+  },
+  {
+    id: "hash-generator",
+    category: "Utility",
+    name: "Hash Generator",
+    method: "POST",
+    path: "/hash",
+    description: "Hasilkan hash MD5, SHA1, SHA256, dan SHA512 dari sebuah teks.",
+    params: [
+      { name: "text", kind: "body", required: true, placeholder: "halo dunia" },
+      { name: "algorithm", kind: "body", required: false, placeholder: "sha256" }
+    ],
+    render: "json"
+  },
+  {
+    id: "base64-tool",
+    category: "Utility",
+    name: "Base64 Encoder/Decoder",
+    method: "POST",
+    path: "/base64",
+    description: "Encode teks menjadi Base64, atau decode Base64 kembali menjadi teks asli.",
+    params: [
+      { name: "text", kind: "body", required: true, placeholder: "halo dunia" },
+      { name: "action", kind: "body", required: true, placeholder: "encode / decode" }
+    ],
+    render: "json"
+  },
+  {
+    id: "json-formatter",
+    category: "Utility",
+    name: "JSON Formatter",
+    method: "POST",
+    path: "/json-format",
+    description: "Rapikan (pretty-print) atau minify sebuah string JSON, sekaligus validasi.",
+    params: [
+      { name: "json", kind: "body", required: true, placeholder: "{\\\"a\\\":1,\\\"b\\\":2}" },
+      { name: "action", kind: "body", required: false, placeholder: "format / minify" }
+    ],
+    render: "json"
+  },
+
+  /* ---------------- Developer Tools ---------------- */
+  {
+    id: "github-user-info",
+    category: "Developer Tools",
+    name: "GitHub User Info",
+    method: "GET",
+    path: "/github/user/:username",
+    description: "Lihat profil publik seorang pengguna GitHub.",
+    params: [
+      { name: "username", kind: "path", required: true, placeholder: "torvalds" }
+    ],
+    render: "json"
+  },
+  {
+    id: "github-repo-info",
+    category: "Developer Tools",
+    name: "GitHub Repository Info",
+    method: "GET",
+    path: "/github/repo/:owner/:repo",
+    description: "Lihat informasi sebuah repository GitHub (bintang, fork, bahasa, dll).",
+    params: [
+      { name: "owner", kind: "path", required: true, placeholder: "facebook" },
+      { name: "repo", kind: "path", required: true, placeholder: "react" }
+    ],
+    render: "json"
+  },
+  {
+    id: "github-search",
+    category: "Developer Tools",
+    name: "GitHub Search",
+    method: "GET",
+    path: "/github/search",
+    description: "Cari repository di GitHub berdasarkan kata kunci.",
+    params: [
+      { name: "q", required: true, placeholder: "rest api framework" }
+    ],
+    render: "json"
+  },
+  {
+    id: "npm-package-info",
+    category: "Developer Tools",
+    name: "NPM Package Info",
+    method: "GET",
+    path: "/npm/:package",
+    description: "Lihat versi terbaru, deskripsi, lisensi, dan jumlah unduhan mingguan sebuah package NPM.",
+    params: [
+      { name: "package", kind: "path", required: true, placeholder: "express" }
+    ],
+    render: "json"
+  },
+  {
+    id: "dns-lookup",
+    category: "Developer Tools",
+    name: "DNS Lookup",
+    method: "GET",
+    path: "/dns-lookup",
+    description: "Lihat record DNS sebuah domain (A, AAAA, MX, TXT, NS, CNAME, SOA).",
+    params: [
+      { name: "domain", required: true, placeholder: "google.com" },
+      { name: "type", required: false, placeholder: "A" }
+    ],
+    render: "json"
+  },
+  {
+    id: "domain-information",
+    category: "Developer Tools",
+    name: "Domain Information",
+    method: "GET",
+    path: "/domain-info",
+    description: "Lihat info registrasi domain (WHOIS/RDAP) — status, nameserver, dan registrar.",
+    params: [
+      { name: "domain", required: true, placeholder: "google.com" }
+    ],
+    render: "json"
+  },
+  {
+    id: "http-status-checker",
+    category: "Developer Tools",
+    name: "HTTP Status Checker",
+    method: "GET",
+    path: "/http-status",
+    description: "Cek status HTTP, waktu respons, dan tipe konten dari sebuah URL.",
+    params: [
+      { name: "url", required: true, placeholder: "https://example.com" }
+    ],
+    render: "json"
+  },
+  {
+    id: "uptime-checker",
+    category: "Developer Tools",
+    name: "Website Uptime Checker",
+    method: "GET",
+    path: "/uptime-check",
+    description: "Cek apakah sebuah website sedang online beserta waktu responsnya.",
+    params: [
+      { name: "url", required: true, placeholder: "https://example.com" }
+    ],
+    render: "json"
+  },
+  {
+    id: "ssl-certificate-info",
+    category: "Developer Tools",
+    name: "SSL Certificate Information",
+    method: "GET",
+    path: "/ssl-info",
+    description: "Lihat detail sertifikat SSL/TLS sebuah host — penerbit, masa berlaku, dan fingerprint.",
+    params: [
+      { name: "host", required: true, placeholder: "google.com" },
+      { name: "port", required: false, placeholder: "443" }
+    ],
+    render: "json"
+  },
+  {
+    id: "color-converter",
+    category: "Developer Tools",
+    name: "Color Converter",
+    method: "GET",
+    path: "/color-convert",
+    description: "Konversi kode warna antara format HEX, RGB, dan HSL.",
+    params: [
+      { name: "color", required: true, placeholder: "#0F9D9D" }
+    ],
+    render: "json"
   },
 
   /* ---------------- Character.AI ---------------- */
@@ -429,6 +961,78 @@ const ENDPOINTS = [
       { name: "id", kind: "path", required: true, placeholder: "session ID dari Buat Session" }
     ],
     render: "json"
+  },
+
+  /* ---------------- System & API ---------------- */
+  {
+    id: "api-health",
+    category: "System & API",
+    name: "API Health",
+    method: "GET",
+    path: "/health",
+    description: "Cek apakah API sedang aktif beserta lama waktu server menyala.",
+    params: [],
+    render: "json"
+  },
+  {
+    id: "api-ping",
+    category: "System & API",
+    name: "API Ping",
+    method: "GET",
+    path: "/ping",
+    description: "Ping sederhana untuk memastikan server merespons.",
+    params: [],
+    render: "json"
+  },
+  {
+    id: "api-statistics",
+    category: "System & API",
+    name: "API Statistics",
+    method: "GET",
+    path: "/api/stats",
+    description: "Lihat statistik umum API — total request, error, dan lama server menyala.",
+    params: [],
+    render: "json"
+  },
+  {
+    id: "endpoint-statistics",
+    category: "System & API",
+    name: "Endpoint Statistics",
+    method: "GET",
+    path: "/api/endpoint-stats",
+    description: "Lihat endpoint mana yang paling sering dipanggil.",
+    params: [],
+    render: "json"
+  },
+  {
+    id: "request-statistics",
+    category: "System & API",
+    name: "Request Statistics",
+    method: "GET",
+    path: "/api/request-stats",
+    description: "Lihat total request, tingkat error, dan rincian berdasarkan metode HTTP.",
+    params: [],
+    render: "json"
+  },
+  {
+    id: "system-information",
+    category: "System & API",
+    name: "System Information",
+    method: "GET",
+    path: "/system-info",
+    description: "Lihat informasi server tempat API berjalan — platform, CPU, memori, dan uptime proses.",
+    params: [],
+    render: "json"
+  },
+  {
+    id: "service-status",
+    category: "System & API",
+    name: "Service Status",
+    method: "GET",
+    path: "/service-status",
+    description: "Lihat integrasi mana saja (Gemini, Groq, Character.AI, dll) yang sudah dikonfigurasi di server.",
+    params: [],
+    render: "json"
   }
 
   /* Tambahkan endpoint baru di sini, contoh:
@@ -444,7 +1048,7 @@ const ENDPOINTS = [
       { name:"param1",    kind:"query", required:true,  placeholder:"contoh nilai" },
       { name:"param2",    kind:"body",  required:false, placeholder:"opsional" }
     ],
-    render: "json"               // "json", "tiktok", "cai-search", "cai-session", "cai-chat", atau renderer baru di RESPONSE_RENDERERS
+    render: "json"               // "json", "tiktok", "media", "ai-image", "screenshot", "qrcode", "cai-search", "cai-session", "cai-chat", atau renderer baru di RESPONSE_RENDERERS
   },
   */
 ];
@@ -848,6 +1452,49 @@ const RESPONSE_RENDERERS = {
         <div class="tt-links">
           ${links.map(l=>`<a class="tt-link" href="${l.u}" target="_blank" rel="noopener"><i class="fas fa-download"></i> ${l.label}</a>`).join("") || `<div style="color:#8FA3B0;font-size:.78rem;">Tidak ada tautan unduhan pada response ini.</div>`}
         </div>
+      </div>`;
+  },
+  media(data){
+    const r = data.result || {};
+    const mediaUrl = r.mediaUrl || r.videoUrl || r.audioUrl || r.imageUrl || "";
+    const thumb = r.thumbnail || "";
+    const title = r.title || "Media";
+    const sub = r.author || r.username || r.quality || "";
+    if(!mediaUrl) return RESPONSE_RENDERERS.json(data);
+    return `
+      <div class="media-card">
+        ${thumb ? `<img class="media-thumb" src="${thumb}" onerror="this.style.display='none'">` : ""}
+        <div class="media-title">${escHtml(title)}</div>
+        ${sub ? `<div class="media-sub">${escHtml(String(sub))}</div>` : ""}
+        <a class="media-link" href="${mediaUrl}" target="_blank" rel="noopener"><i class="fas fa-download"></i> Buka / Unduh Media</a>
+      </div>`;
+  },
+  "ai-image"(data){
+    const r = data.result || {};
+    if(!r.imageUrl) return RESPONSE_RENDERERS.json(data);
+    return `
+      <div class="media-card">
+        <img class="media-thumb" src="${r.imageUrl}" style="max-height:280px;" onerror="this.style.display='none'">
+        <div class="media-sub">${escHtml(r.width || "")}×${escHtml(r.height || "")}</div>
+        <a class="media-link" href="${r.imageUrl}" target="_blank" rel="noopener"><i class="fas fa-up-right-from-square"></i> Buka Gambar Penuh</a>
+      </div>`;
+  },
+  screenshot(data){
+    const r = data.result || {};
+    if(!r.screenshotUrl) return RESPONSE_RENDERERS.json(data);
+    return `
+      <div class="media-card">
+        <img class="media-thumb" src="${r.screenshotUrl}" style="max-height:280px;" onerror="this.style.display='none'">
+        <a class="media-link" href="${r.screenshotUrl}" target="_blank" rel="noopener"><i class="fas fa-up-right-from-square"></i> Buka Screenshot Penuh</a>
+      </div>`;
+  },
+  qrcode(data){
+    const r = data.result || {};
+    if(!r.qrCodeBase64) return RESPONSE_RENDERERS.json(data);
+    return `
+      <div class="media-card">
+        <img class="media-thumb" src="${r.qrCodeBase64}" style="max-height:240px;object-fit:contain;background:#fff;padding:10px;">
+        <a class="media-link" href="${r.qrCodeBase64}" download="qrcode.png"><i class="fas fa-download"></i> Unduh QR Code</a>
       </div>`;
   },
   "cai-search"(data){
