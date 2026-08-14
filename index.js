@@ -32,6 +32,14 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 // =========================================================
 // 3. HELPER: GENERATE AI DENGAN FALLBACK
 // =========================================================
+// FIX: sebelumnya hanya fallback ke Groq kalau error dianggap "quota habis"
+// (status 429 / pesan mengandung "quota"/"RESOURCE_EXHAUSTED"). Padahal error
+// "API key not valid" (INVALID_ARGUMENT / API_KEY_INVALID, status 400) itu
+// TIDAK ketangkep kondisi isQuotaError, jadi langsung throw dan bikin semua
+// endpoint /generate, /ai/summarize, /ai/translate, dll ikut down walaupun
+// Groq-nya sendiri sehat. Sekarang: kalau Gemini gagal karena alasan APAPUN
+// (quota habis, key invalid, model error, dsb) -> coba Groq sebagai fallback.
+// Kalau Groq juga gagal, baru lempar error Gemini yang asli.
 async function generateAI(prompt, systemPrompt = '') {
   try {
     const response = await ai.models.generateContent({
@@ -42,25 +50,37 @@ async function generateAI(prompt, systemPrompt = '') {
     console.log('[AI] Gemini berhasil');
     return response.text;
   } catch (geminiError) {
-    const isQuotaError = geminiError?.status === 429 ||
-      geminiError?.message?.includes('quota') ||
-      geminiError?.message?.includes('RESOURCE_EXHAUSTED');
+    const reason =
+      geminiError?.status === 429 || geminiError?.message?.includes('quota') || geminiError?.message?.includes('RESOURCE_EXHAUSTED')
+        ? 'quota habis'
+        : geminiError?.message?.includes('API_KEY_INVALID') || geminiError?.message?.includes('API key not valid')
+        ? 'API key Gemini tidak valid (cek env var GEMINI_API_KEY di Vercel)'
+        : 'error tidak dikenal';
 
-    if (!isQuotaError) throw geminiError;
+    console.warn(`[AI] Gemini gagal (${reason}), fallback ke Groq...`);
 
-    console.warn('[AI] Gemini quota habis, fallback ke Groq...');
+    if (!process.env.GROQ_API_KEY) {
+      // Tidak ada fallback yang bisa dipakai, lempar error Gemini asli supaya pesannya jelas.
+      throw geminiError;
+    }
 
-    const messages = [];
-    if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
-    messages.push({ role: 'user', content: prompt });
+    try {
+      const messages = [];
+      if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
+      messages.push({ role: 'user', content: prompt });
 
-    const groqRes = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
-      messages
-    });
+      const groqRes = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages
+      });
 
-    console.log('[AI] Groq berhasil (fallback)');
-    return groqRes.choices[0].message.content;
+      console.log('[AI] Groq berhasil (fallback)');
+      return groqRes.choices[0].message.content;
+    } catch (groqError) {
+      console.error('[AI] Groq fallback juga gagal:', groqError?.message);
+      // Lempar error Gemini asli (lebih informatif soal root cause: quota vs key invalid)
+      throw geminiError;
+    }
   }
 }
 
@@ -111,87 +131,80 @@ async function scrapeMeta(url) {
 }
 
 // =========================================================
-// 4B. HELPER: YOUTUBE VIA Y2MATE API
+// 4B. HELPER: YOUTUBE VIA COBALT API
 // =========================================================
+// FIX: y2mate.com DITUTUP PERMANEN sejak Oktober 2025 (tindakan hukum IFPI),
+// domainnya sudah tidak resolve sama sekali -> ENOTFOUND. Endpoint /ytmp3 dan
+// /ytmp4 lama TIDAK BISA diperbaiki dengan tetap memakai y2mate, harus ganti
+// provider. Diganti ke Cobalt (https://github.com/imputnet/cobalt), open-source
+// media downloader yang masih aktif dikembangkan.
+//
+// PENTING: instance publik api.cobalt.tools memblokir YouTube dan pakai bot
+// protection, jadi TIDAK BISA dipakai langsung dari server lain (termasuk kamu).
+// Kamu WAJIB self-host instance Cobalt sendiri (gratis, 1-click deploy di
+// Railway/Render/VPS/Docker: https://github.com/imputnet/cobalt) lalu set env
+// var COBALT_API_URL ke domain instance kamu, contoh:
+//   COBALT_API_URL=https://cobalt-punya-saya.up.railway.app
 function extractYoutubeId(url) {
   const regex = /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
   const match = url.match(regex);
   return match ? match[1] : null;
 }
 
-async function getYoutubeLinks(videoId, type = 'mp4') {
-  // Step 1: Analyze
-  const analyzeRes = await fetch('https://www.y2mate.com/mates/analyzeV2/ajax', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': DEFAULT_UA
-    },
-    body: new URLSearchParams({
-      k_query: `https://www.youtube.com/watch?v=${videoId}`,
-      k_page: 'home',
-      hl: 'en',
-      q_auto: '0'
-    }),
-    signal: AbortSignal.timeout(10000)
-  });
-
-  const analyzeData = await analyzeRes.json();
-  if (!analyzeData?.vid) throw new Error('Gagal menganalisis video.');
-
-  const vid = analyzeData.vid;
-
-  const links = analyzeData?.links?.[type];
-  if (!links) throw new Error(`Format ${type} tidak tersedia.`);
-
-  let chosenKey = null;
-  let chosenData = null;
-
-  if (type === 'mp3') {
-    for (const [key, val] of Object.entries(links)) {
-      if (val?.q?.includes('128') || !chosenKey) {
-        chosenKey = key;
-        chosenData = val;
-      }
-    }
-  } else {
-    const preferred = ['720p', '480p', '360p', '1080p'];
-    for (const q of preferred) {
-      const found = Object.entries(links).find(([, v]) => v?.q === q);
-      if (found) {
-        chosenKey = found[0];
-        chosenData = found[1];
-        break;
-      }
-    }
-    if (!chosenKey) {
-      const first = Object.entries(links)[0];
-      chosenKey = first[0];
-      chosenData = first[1];
-    }
+async function getYoutubeLinks(videoUrl, type = 'mp4') {
+  const cobaltBase = process.env.COBALT_API_URL;
+  if (!cobaltBase) {
+    throw new Error(
+      'COBALT_API_URL belum diset. y2mate sudah tutup permanen sejak Okt 2025, kamu perlu self-host Cobalt (https://github.com/imputnet/cobalt) lalu set env var COBALT_API_URL.'
+    );
   }
 
-  if (!chosenKey) throw new Error('Tidak ada format yang cocok.');
+  const body = {
+    url: videoUrl,
+    downloadMode: type === 'mp3' ? 'audio' : 'auto',
+    videoQuality: '720',
+    audioFormat: 'mp3'
+  };
 
-  const convertRes = await fetch('https://www.y2mate.com/mates/convertV2/index', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': DEFAULT_UA
+  const res = await fetchWithTimeout(
+    cobaltBase.replace(/\/$/, '') + '/',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        ...(process.env.COBALT_API_KEY ? { Authorization: `Api-Key ${process.env.COBALT_API_KEY}` } : {})
+      },
+      body: JSON.stringify(body)
     },
-    body: new URLSearchParams({ vid, k: chosenKey }),
-    signal: AbortSignal.timeout(15000)
-  });
+    20000
+  );
 
-  const convertData = await convertRes.json();
-  if (!convertData?.dlink) throw new Error('Gagal mendapatkan link download.');
+  const data = await res.json();
+
+  if (data.status === 'error') {
+    throw new Error(data?.error?.code || 'Gagal memproses video lewat Cobalt.');
+  }
+
+  // Cobalt bisa balas beberapa bentuk: "redirect"/"tunnel" (langsung ada url),
+  // atau "picker" (banyak pilihan kualitas/format).
+  let downloadUrl = data.url || null;
+  let pickedLabel = data.filename || null;
+
+  if (!downloadUrl && Array.isArray(data.picker) && data.picker.length > 0) {
+    const pick = data.picker.find(p => p.type === (type === 'mp3' ? 'audio' : 'video')) || data.picker[0];
+    downloadUrl = pick?.url || null;
+    pickedLabel = pick?.type || pickedLabel;
+  }
+
+  if (!downloadUrl) {
+    throw new Error('Cobalt tidak mengembalikan link download yang valid.');
+  }
 
   return {
-    title: analyzeData.title,
-    thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-    quality: chosenData?.q || '',
-    size: chosenData?.size || '',
-    downloadUrl: convertData.dlink
+    title: data.filename || null,
+    quality: pickedLabel || '',
+    downloadUrl
   };
 }
 
@@ -544,7 +557,7 @@ app.get('/tiktok', async (req, res) => {
   }
 });
 
-// --- GET /ytmp3 (sudah ada) ---
+// --- GET /ytmp3 (FIXED: pakai Cobalt, bukan y2mate yang sudah tutup) ---
 app.get('/ytmp3', async (req, res) => {
   const url = req.query.url;
   if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
@@ -556,14 +569,13 @@ app.get('/ytmp3', async (req, res) => {
   if (!videoId) return res.status(400).json({ status: 'error', message: 'Video ID tidak ditemukan.' });
 
   try {
-    const result = await getYoutubeLinks(videoId, 'mp3');
+    const result = await getYoutubeLinks(url, 'mp3');
     res.json({
       status: 'success',
       result: {
         title: result.title,
-        thumbnail: result.thumbnail,
+        thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
         quality: result.quality,
-        size: result.size,
         audioUrl: result.downloadUrl
       }
     });
@@ -573,7 +585,7 @@ app.get('/ytmp3', async (req, res) => {
   }
 });
 
-// --- GET /ytmp4 (sudah ada) ---
+// --- GET /ytmp4 (FIXED: pakai Cobalt, bukan y2mate yang sudah tutup) ---
 app.get('/ytmp4', async (req, res) => {
   const url = req.query.url;
   if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
@@ -585,14 +597,13 @@ app.get('/ytmp4', async (req, res) => {
   if (!videoId) return res.status(400).json({ status: 'error', message: 'Video ID tidak ditemukan.' });
 
   try {
-    const result = await getYoutubeLinks(videoId, 'mp4');
+    const result = await getYoutubeLinks(url, 'mp4');
     res.json({
       status: 'success',
       result: {
         title: result.title,
-        thumbnail: result.thumbnail,
+        thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
         quality: result.quality,
-        size: result.size,
         videoUrl: result.downloadUrl
       }
     });
@@ -752,7 +763,6 @@ app.get('/pinterest', async (req, res) => {
     const meta = await scrapeMeta(url);
     if (!meta.image && !meta.video) throw new Error('Media tidak ditemukan.');
 
-    // og:image Pinterest biasanya versi kecil (236x), coba upgrade ke originals
     const highRes = meta.image ? meta.image.replace(/\/\d+x(?:\/|$)/, '/originals/') : null;
 
     res.json({
@@ -796,7 +806,6 @@ app.get('/spotify', async (req, res) => {
 // 10. IMAGE & MEDIA TOOLS
 // =========================================================
 
-// Helper: ambil buffer gambar dari imageUrl (query) atau body.imageBase64
 async function getImageBuffer(req) {
   const { imageUrl, imageBase64 } = { ...req.query, ...req.body };
   if (imageBase64) {
@@ -813,8 +822,6 @@ async function getImageBuffer(req) {
   throw err;
 }
 
-// --- POST/GET /image/upscale — Image Upscaler ---
-// Pakai DeepAI (butuh DEEPAI_API_KEY) kalau tersedia, fallback ke resize Lanczos via sharp.
 app.all('/image/upscale', async (req, res) => {
   try {
     const buffer = await getImageBuffer(req);
@@ -834,7 +841,6 @@ app.all('/image/upscale', async (req, res) => {
       }
     }
 
-    // Fallback: resize sederhana (bukan AI upscaling asli, tapi tetap berfungsi)
     const meta = await sharp(buffer).metadata();
     const outBuffer = await sharp(buffer)
       .resize(Math.round((meta.width || 512) * scale), Math.round((meta.height || 512) * scale), { kernel: 'lanczos3' })
@@ -850,7 +856,6 @@ app.all('/image/upscale', async (req, res) => {
   }
 });
 
-// --- POST/GET /image/compress — Image Compressor ---
 app.all('/image/compress', async (req, res) => {
   try {
     const buffer = await getImageBuffer(req);
@@ -879,7 +884,6 @@ app.all('/image/compress', async (req, res) => {
   }
 });
 
-// --- POST/GET /image/convert — Image Converter ---
 app.all('/image/convert', async (req, res) => {
   try {
     const buffer = await getImageBuffer(req);
@@ -899,7 +903,6 @@ app.all('/image/convert', async (req, res) => {
   }
 });
 
-// --- GET/POST /image/metadata — Image Metadata ---
 app.all('/image/metadata', async (req, res) => {
   try {
     const buffer = await getImageBuffer(req);
@@ -931,7 +934,6 @@ app.all('/image/metadata', async (req, res) => {
   }
 });
 
-// --- GET /screenshot — Website Screenshot (via layanan gratis mshots) ---
 app.get('/screenshot', async (req, res) => {
   const url = req.query.url;
   const width = req.query.width || 1280;
@@ -939,7 +941,6 @@ app.get('/screenshot', async (req, res) => {
 
   try {
     const screenshotUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(url)}?w=${width}`;
-    // mshots butuh beberapa saat generate render pertama kali; validasi cepat saja
     await fetchWithTimeout(screenshotUrl, {}, 15000);
     res.json({ status: 'success', result: { screenshotUrl, note: 'Jika gambar masih placeholder, coba lagi beberapa detik kemudian (render async).' } });
   } catch (error) {
@@ -948,7 +949,6 @@ app.get('/screenshot', async (req, res) => {
   }
 });
 
-// --- GET /qrcode — QR Code Generator ---
 app.get('/qrcode', async (req, res) => {
   const text = req.query.text;
   const size = parseInt(req.query.size) || 300;
@@ -974,7 +974,6 @@ app.get('/qrcode', async (req, res) => {
 // 11. UTILITY
 // =========================================================
 
-// --- GET /url/metadata — URL Metadata ---
 app.get('/url/metadata', async (req, res) => {
   const url = req.query.url;
   if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
@@ -998,7 +997,6 @@ app.get('/url/metadata', async (req, res) => {
   }
 });
 
-// --- POST /url/shorten — URL Shortener (via is.gd, gratis tanpa key) ---
 app.post('/url/shorten', async (req, res) => {
   const { url } = req.body || {};
   if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
@@ -1013,7 +1011,6 @@ app.post('/url/shorten', async (req, res) => {
   }
 });
 
-// --- GET /ip-info — IP Information ---
 app.get('/ip-info', async (req, res) => {
   const ip = req.query.ip || '';
   try {
@@ -1041,7 +1038,6 @@ app.get('/ip-info', async (req, res) => {
   }
 });
 
-// --- GET /weather — Weather Information (via Open-Meteo, gratis tanpa key) ---
 app.get('/weather', async (req, res) => {
   const city = req.query.city;
   let { lat, lon } = req.query;
@@ -1077,7 +1073,6 @@ app.get('/weather', async (req, res) => {
   }
 });
 
-// --- GET /timestamp — Timestamp Converter ---
 app.get('/timestamp', (req, res) => {
   const { timestamp, date } = req.query;
   try {
@@ -1107,7 +1102,6 @@ app.get('/timestamp', (req, res) => {
   }
 });
 
-// --- GET /password — Password Generator ---
 app.get('/password', (req, res) => {
   const length = Math.min(Math.max(parseInt(req.query.length) || 16, 4), 128);
   const useUpper = req.query.upper !== 'false';
@@ -1136,14 +1130,12 @@ app.get('/password', (req, res) => {
   res.json({ status: 'success', result: { passwords, length, count } });
 });
 
-// --- GET /uuid — UUID Generator ---
 app.get('/uuid', (req, res) => {
   const count = Math.min(parseInt(req.query.count) || 1, 100);
   const uuids = Array.from({ length: count }, () => crypto.randomUUID());
   res.json({ status: 'success', result: { uuids, count } });
 });
 
-// --- POST /hash — Hash Generator ---
 app.post('/hash', (req, res) => {
   const { text, algorithm } = req.body || {};
   if (!text) return res.status(400).json({ status: 'error', message: 'Parameter "text" diperlukan.' });
@@ -1160,7 +1152,6 @@ app.post('/hash', (req, res) => {
   }
 });
 
-// --- POST /base64 — Base64 Encoder/Decoder ---
 app.post('/base64', (req, res) => {
   const { text, action } = req.body || {};
   if (!text || !action) return res.status(400).json({ status: 'error', message: 'Parameter "text" dan "action" ("encode"/"decode") diperlukan.' });
@@ -1178,7 +1169,6 @@ app.post('/base64', (req, res) => {
   }
 });
 
-// --- POST /json-format — JSON Formatter ---
 app.post('/json-format', (req, res) => {
   const { json, action, indent } = req.body || {};
   if (!json) return res.status(400).json({ status: 'error', message: 'Parameter "json" diperlukan.' });
@@ -1201,7 +1191,6 @@ const GITHUB_HEADERS = {
   ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {})
 };
 
-// --- GET /github/user/:username — GitHub User Info ---
 app.get('/github/user/:username', async (req, res) => {
   try {
     const data = await fetchJson(`https://api.github.com/users/${req.params.username}`, { headers: GITHUB_HEADERS });
@@ -1212,7 +1201,6 @@ app.get('/github/user/:username', async (req, res) => {
   }
 });
 
-// --- GET /github/repo/:owner/:repo — GitHub Repository Info ---
 app.get('/github/repo/:owner/:repo', async (req, res) => {
   try {
     const data = await fetchJson(`https://api.github.com/repos/${req.params.owner}/${req.params.repo}`, { headers: GITHUB_HEADERS });
@@ -1223,7 +1211,6 @@ app.get('/github/repo/:owner/:repo', async (req, res) => {
   }
 });
 
-// --- GET /github/search — GitHub Search (repositories) ---
 app.get('/github/search', async (req, res) => {
   const q = req.query.q;
   if (!q) return res.status(400).json({ status: 'error', message: 'Parameter "q" diperlukan.' });
@@ -1250,7 +1237,6 @@ app.get('/github/search', async (req, res) => {
   }
 });
 
-// --- GET /npm/:package — NPM Package Info ---
 app.get('/npm/:package', async (req, res) => {
   try {
     const data = await fetchJson(`https://registry.npmjs.org/${req.params.package}`);
@@ -1282,7 +1268,6 @@ app.get('/npm/:package', async (req, res) => {
   }
 });
 
-// --- GET /dns-lookup — DNS Lookup ---
 app.get('/dns-lookup', async (req, res) => {
   const domain = req.query.domain;
   const type = (req.query.type || 'A').toUpperCase();
@@ -1307,7 +1292,6 @@ app.get('/dns-lookup', async (req, res) => {
   }
 });
 
-// --- GET /domain-info — Domain Information (via RDAP, standar & gratis) ---
 app.get('/domain-info', async (req, res) => {
   const domain = req.query.domain;
   if (!domain) return res.status(400).json({ status: 'error', message: 'Parameter "domain" diperlukan.' });
@@ -1330,7 +1314,6 @@ app.get('/domain-info', async (req, res) => {
   }
 });
 
-// --- GET /http-status — HTTP Status Checker ---
 app.get('/http-status', async (req, res) => {
   const url = req.query.url;
   if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
@@ -1358,7 +1341,6 @@ app.get('/http-status', async (req, res) => {
   }
 });
 
-// --- GET /uptime-check — Website Uptime Checker ---
 app.get('/uptime-check', async (req, res) => {
   const url = req.query.url;
   if (!url) return res.status(400).json({ status: 'error', message: 'Parameter "url" diperlukan.' });
@@ -1384,7 +1366,6 @@ app.get('/uptime-check', async (req, res) => {
   }
 });
 
-// --- GET /ssl-info — SSL Certificate Information ---
 app.get('/ssl-info', (req, res) => {
   const host = req.query.host || req.query.domain;
   const port = parseInt(req.query.port) || 443;
@@ -1422,7 +1403,6 @@ app.get('/ssl-info', (req, res) => {
   });
 });
 
-// --- GET /color-convert — Color Converter ---
 function hexToRgb(hex) {
   const h = hex.replace('#', '');
   const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
@@ -1476,13 +1456,6 @@ app.get('/color-convert', (req, res) => {
 
 // =========================================================
 // 12B. CHARACTER.AI (CAI)
-//   GET    /cai/search              -> cari karakter
-//   GET    /cai/character/:charId   -> detail karakter
-//   POST   /cai/session             -> buat session/chat baru dengan karakter
-//   GET    /cai/session/:id         -> lihat detail session
-//   GET    /cai/session/:id/history -> riwayat chat session
-//   POST   /cai/session/:id/chat    -> kirim pesan ke karakter dalam session ini
-//   DELETE /cai/session/:id         -> hapus session
 // =========================================================
 
 app.get('/cai/search', async (req, res) => {
@@ -1617,7 +1590,6 @@ app.delete('/cai/session/:id', (req, res) => {
 // 13. SYSTEM & API
 // =========================================================
 
-// --- GET /health — API Health ---
 app.get('/health', (req, res) => {
   res.json({
     status: 'success',
@@ -1629,12 +1601,10 @@ app.get('/health', (req, res) => {
   });
 });
 
-// --- GET /ping — API Ping ---
 app.get('/ping', (req, res) => {
   res.json({ status: 'success', result: { message: 'pong', timestamp: Date.now() } });
 });
 
-// --- GET /api/stats — API Statistics ---
 app.get('/api/stats', (req, res) => {
   res.json({
     status: 'success',
@@ -1647,7 +1617,6 @@ app.get('/api/stats', (req, res) => {
   });
 });
 
-// --- GET /api/endpoint-stats — Endpoint Statistics ---
 app.get('/api/endpoint-stats', (req, res) => {
   const sorted = Object.entries(stats.byEndpoint)
     .sort((a, b) => b[1] - a[1])
@@ -1655,7 +1624,6 @@ app.get('/api/endpoint-stats', (req, res) => {
   res.json({ status: 'success', result: { endpoints: sorted } });
 });
 
-// --- GET /api/request-stats — Request Statistics ---
 app.get('/api/request-stats', (req, res) => {
   res.json({
     status: 'success',
@@ -1668,7 +1636,6 @@ app.get('/api/request-stats', (req, res) => {
   });
 });
 
-// --- GET /system-info — System Information ---
 app.get('/system-info', (req, res) => {
   res.json({
     status: 'success',
@@ -1685,14 +1652,16 @@ app.get('/system-info', (req, res) => {
   });
 });
 
-// --- GET /service-status — Service Status (cek integrasi eksternal) ---
+// FIX: tambahin status "youtube" biar kelihatan dari /service-status apakah
+// COBALT_API_URL sudah diset atau belum, tanpa harus nunggu error di /ytmp3.
 app.get('/service-status', async (req, res) => {
   const result = {
     gemini: Boolean(process.env.GEMINI_API_KEY),
     groq: Boolean(process.env.GROQ_API_KEY),
     characterAI: Boolean(process.env.CHARACTER_AI_TOKEN),
     deepAI: Boolean(process.env.DEEPAI_API_KEY),
-    githubToken: Boolean(process.env.GITHUB_TOKEN)
+    githubToken: Boolean(process.env.GITHUB_TOKEN),
+    youtubeDownloader: Boolean(process.env.COBALT_API_URL)
   };
   res.json({ status: 'success', result: { configured: result, timestamp: new Date().toISOString() } });
 });
