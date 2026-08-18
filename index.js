@@ -70,9 +70,9 @@ async function generateAI(prompt, systemPrompt = '') {
       messages.push({ role: 'user', content: prompt });
 
       const groqRes = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
-        messages
-      });
+  model: 'openai/gpt-oss-120b',
+  messages
+});
 
       console.log('[AI] Groq berhasil (fallback)');
       return groqRes.choices[0].message.content;
